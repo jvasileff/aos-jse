@@ -9,8 +9,11 @@ compile.debuglevel:lines,source
 ################################################################################
 
 ## ALL JARS FROM REPOSITORY:
-dir.jars=/opt/gx/repository/jars
+dir.jars=C:/opt/gx/repository/jars
+dir.jars.notfree:C:/opt/gx/repository/jars.notfree
 
 ## JARS SPECIFIED INDIVIDUALLY:
 # xercesImpl.jar=/path/to/jarfile
 # xml-apis.jar=/path/to/jarfile
+# mail.jar=/path/to/jarfile
+# smtp.jar=/path/to/jarfile
