@@ -1,0 +1,26 @@
+================================================================================
+                                 Anodyneos JSE
+================================================================================
+
+JScheduler/Executer (JSE) provides scheduling and multi-threaded execution of
+jobs in Java.  At its base, JSE is a set of classes that can be used by any
+Java application that needs to queue and run batch jobs, schedule a job to be
+run at a future point in time, or schedule a recurring job.
+
+JSE also contains a standalone daemon that provides Unix Cron style job
+scheduling for Java.  Since the JSE cron server is a long running process, jobs
+written in Java can easily be run on any schedule without the overhead of
+launching a new JVM for each run, or worse, launching several long running JVMs
+with each performing its own function.  JSE/Cron is useful for system
+monitoring jobs that must be run on short intervals and daily chores such as
+running reports or queue processing.
+
+Contents:
+
+    BUILDING                Instructions for building from sources
+    LICENSE                 License for this release
+    README                  This document
+    src.java/               Java source code for this release
+    src.lib/                Third party libraries
+    src.sample/             Sample code
+

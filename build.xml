@@ -1,0 +1,82 @@
+<?xml version="1.0"?>
+
+<!--****************************************************************************
+**
+**  ANODYNE OS - JSE
+**
+*****************************************************************************-->
+
+<project name="anodyneos-jse" default="compile" basedir=".">
+
+    <property file="build.properties"/>
+
+    <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ~~  common
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+    <import file="build.common.xml"/>
+
+    <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ~~  properties
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+    <property name="dir.src.sample"     location="src.sample"/>
+    <property name="cronConfigFile"     location="${dir.src.sample}/cron.xml"/>
+
+    <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ~~  required jars
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+    <property name="xercesImpl.jar" location="${dir.jars}/xerces-2.6.0/xercesImpl.jar"/>
+    <property name="xml-apis.jar" location="${dir.jars}/xerces-2.6.0/xml-apis.jar"/>
+
+    <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ~~  prepare.post
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+    <target name="prepare.post">
+        <!-- ide.lib -->
+        <copy toDir="${dir.build.ide.lib}" file="${xercesImpl.jar}"/>
+        <copy toDir="${dir.build.ide.lib}" file="${xml-apis.jar}"/>
+
+        <!-- paths -->
+        <path id="path.compile">
+            <fileset id="fs.lib" dir="${dir.build.ide.lib}">
+                <include name="*.jar"/>
+            </fileset>
+        </path>
+    </target>
+
+    <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ~~  cronServer
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+
+    <target name="cronServer" depends="compile" description="Run CronServer">
+        <java taskname="run" fork="yes" classname="org.anodyneos.jse.cron.CronServer">
+            <arg line="${cronConfigFile}"/>
+            <sysproperty key="test.prop.22" value="22"/>
+            <classpath refid="path.compile"/>
+            <classpath location="${dir.build.classes}"/>
+        </java>
+    </target>
+
+    <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ~~  jseRunnerTest
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+
+    <target name="jseRunnerTest" depends="compile" description="Run JseRunnerTest">
+        <java taskname="run" fork="yes" classname="org.anodyneos.jse.JseRunnerTest">
+            <classpath refid="path.compile"/>
+            <classpath location="${dir.build.classes}"/>
+        </java>
+    </target>
+
+    <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ~~  cronScheduleTest
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+
+    <target name="cronScheduleTest" depends="compile" description="Run CronScheduleTest">
+        <java taskname="run" fork="yes" classname="org.anodyneos.jse.cron.CronScheduleTest">
+            <classpath refid="path.compile"/>
+            <classpath location="${dir.build.classes}"/>
+        </java>
+    </target>
+
+</project>
+

@@ -1,0 +1,32 @@
+<schedule time-zone="America/New_York">
+
+    <!--
+        notBefore="2002-11-14T21:37:00" notAfter="2002-11-14T21:37:10"
+    -->
+
+    <job-group name="Group#1" max-concurrent="1">
+        <job max-iterations="-1" name="job1" class="org.anodyneos.jse.cron.SampleJob" schedule="*/1 * * * * *" max-queue="1">
+            <property name="dbPassword">1</property>
+        </job>
+        <job max-iterations="-1" name="job1" class="org.anodyneos.jse.cron.SampleJob" schedule="* * 21 * * *" max-queue="1" time-zone="GMT">
+            <property name="dbPassword">2</property>
+        </job>
+    </job-group>
+
+    <job-group name="Group#2" max-concurrent="1">
+        <job max-iterations="1" name="job2" class="org.anodyneos.jse.cron.SampleDateAwareJob" schedule="*/2 * * * * *" max-queue="1">
+            <!-- <property name="dbPassword">2</property>-->
+            <property name="dbPassword" system-property="test.prop.22">2</property>
+        </job>
+        <job max-iterations="1" name="job3" class="org.anodyneos.jse.cron.SampleDateAwareJob" schedule="*/3 * * * * *" max-queue="1">
+            <property name="dbPassword">3</property>
+        </job>
+        <job max-iterations="1" name="job4" class="org.anodyneos.jse.cron.SampleDateAwareJob" schedule="*/4 * * * * *" max-queue="1">
+            <property name="dbPassword">4</property>
+        </job>
+        <job max-iterations="1" name="job5" class="org.anodyneos.jse.cron.SampleCronJob" schedule="*/5 * * * * *" max-queue="1">
+            <property name="dbPassword">5</property>
+        </job>
+    </job-group>
+
+</schedule>
