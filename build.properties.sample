@@ -9,8 +9,8 @@ compile.debuglevel:lines,source
 ################################################################################
 
 ## ALL JARS FROM REPOSITORY:
-dir.jars=C:/opt/gx/repository/jars
-dir.jars.notfree:C:/opt/gx/repository/jars.notfree
+dir.jars=/opt/zeus/repository/jars
+dir.jars.notfree:/opt/zeus/repository/jars.notfree
 
 ## JARS SPECIFIED INDIVIDUALLY:
 # xercesImpl.jar=/path/to/jarfile
