@@ -27,10 +27,12 @@ package org.anodyneos.jse.cron;
 import org.anodyneos.jse.JseException;
 
 /**
- *  @version $Id: JseIntrospectionException.java,v 1.1.1.1 2004-04-23 21:04:08 jvas Exp $
+ *  @version $Id: JseIntrospectionException.java,v 1.2 2005-04-08 04:02:47 jvas Exp $
  */
 
 public class JseIntrospectionException extends JseException {
+
+    private static final long serialVersionUID = 3258128076763051574L;
     private String value;
     private String toType;
     private Throwable cause;

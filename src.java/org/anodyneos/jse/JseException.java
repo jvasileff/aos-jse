@@ -27,9 +27,11 @@ package org.anodyneos.jse;
 import java.io.PrintStream;
 
 /**
- *  @version $Id: JseException.java,v 1.1.1.1 2004-04-23 21:04:08 jvas Exp $
+ *  @version $Id: JseException.java,v 1.2 2005-04-08 04:02:47 jvas Exp $
  */
 public class JseException extends Exception {
+
+    private static final long serialVersionUID = 3258416140085573430L;
 
     private Throwable cause;
 

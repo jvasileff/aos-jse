@@ -25,9 +25,11 @@
 package org.anodyneos.jse;
 
 /**
- *  @version $Id: JseTimerExpiredException.java,v 1.1.1.1 2004-04-23 21:04:08 jvas Exp $
+ *  @version $Id: JseTimerExpiredException.java,v 1.2 2005-04-08 04:02:47 jvas Exp $
  */
 public class JseTimerExpiredException extends JseException {
+
+    private static final long serialVersionUID = 4122543197734843953L;
     public JseTimerExpiredException() {
         super();
     }

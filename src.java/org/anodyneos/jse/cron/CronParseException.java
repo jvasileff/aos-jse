@@ -27,9 +27,12 @@ package org.anodyneos.jse.cron;
 import org.anodyneos.jse.JseException;
 
 /**
- *  @version $Id: CronParseException.java,v 1.2 2004-05-13 03:42:03 jvas Exp $
+ *  @version $Id: CronParseException.java,v 1.3 2005-04-08 04:02:47 jvas Exp $
  */
 public class CronParseException extends JseException {
+
+    private static final long serialVersionUID = 3257564014396584497L;
+
     public CronParseException(String s) {
         super(s);
     }
