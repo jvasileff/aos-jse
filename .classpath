@@ -4,5 +4,8 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="build/ide.lib/xercesImpl.jar"/>
 	<classpathentry kind="lib" path="build/ide.lib/xml-apis.jar"/>
+	<classpathentry kind="lib" path="build/ide.lib/mail.jar"/>
+	<classpathentry kind="lib" path="build/ide.lib/mailapi.jar"/>
+	<classpathentry kind="lib" path="build/ide.lib/smtp.jar"/>
 	<classpathentry kind="output" path="build/ide.classes"/>
 </classpath>

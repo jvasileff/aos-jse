@@ -26,6 +26,10 @@
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
     <property name="xercesImpl.jar" location="${dir.jars}/xerces-2.6.0/xercesImpl.jar"/>
     <property name="xml-apis.jar" location="${dir.jars}/xerces-2.6.0/xml-apis.jar"/>
+    <property name="mailapi.jar" location="${dir.jars.notfree}/javamail-1.3.1/mailapi.jar"/>
+    <property name="mail.jar" location="${dir.jars.notfree}/javamail-1.3.1/mail.jar"/>
+    <property name="smtp.jar" location="${dir.jars.notfree}/javamail-1.3.1/smtp.jar"/>
+    <property name="activation.jar" location="${dir.jars.notfree}/jaf-1.0.2/activation.jar"/>
 
     <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     ~~  prepare.post
@@ -34,6 +38,10 @@
         <!-- ide.lib -->
         <copy toDir="${dir.build.ide.lib}" file="${xercesImpl.jar}"/>
         <copy toDir="${dir.build.ide.lib}" file="${xml-apis.jar}"/>
+        <copy toDir="${dir.build.ide.lib}" file="${mailapi.jar}"/>
+        <copy toDir="${dir.build.ide.lib}" file="${mail.jar}"/>
+        <copy toDir="${dir.build.ide.lib}" file="${smtp.jar}"/>
+        <copy toDir="${dir.build.ide.lib}" file="${activation.jar}"/>
 
         <!-- paths -->
         <path id="path.compile">
