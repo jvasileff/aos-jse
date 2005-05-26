@@ -248,8 +248,8 @@ public class SQLReport implements CronJob {
                 //       base64 is ok, but not human readable - better for binary
                 //       quoted-printable works pretty well
                 //bodyPart.setHeader("Content-Transfer-Encoding", "7bit");
-                //bodyPart.setHeader("Content-Transfer-Encoding", "base64");
-                bodyPart.setHeader("Content-Transfer-Encoding", "quoted-printable");
+                bodyPart.setHeader("Content-Transfer-Encoding", "base64");
+                //bodyPart.setHeader("Content-Transfer-Encoding", "quoted-printable");
                 msg.setContent(multiPart);
                 msg.setSentDate(new Date());
                 if (log.isDebugEnabled()) {

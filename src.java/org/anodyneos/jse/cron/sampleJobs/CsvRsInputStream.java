@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.List;
+import java.util.zip.GZIPOutputStream;
 
 import org.anodyneos.commons.text.CsvWriter;
 import org.apache.commons.logging.Log;
@@ -44,6 +45,8 @@ public class CsvRsInputStream extends InputStream {
     private boolean rsClosed = false;
     private boolean eof = false;
 
+    private GZIPOutputStream gzipOS = null;
+
     public CsvRsInputStream(ResultSet rs, List cols, String encoding) throws SQLException, IOException,
     UnsupportedEncodingException {
         this(rs, cols, true, encoding);
@@ -60,7 +63,8 @@ public class CsvRsInputStream extends InputStream {
         if (log.isDebugEnabled()) {
             log.debug("Using encoding: " + encoding);
         }
-        this.csvWriter = new CsvWriter(new OutputStreamWriter(buffer, encoding));
+        this.gzipOS = new GZIPOutputStream(buffer);
+        this.csvWriter = new CsvWriter(new OutputStreamWriter(gzipOS, encoding));
 
         // lets buffer the header now....
         if (cols == null) {
@@ -107,6 +111,9 @@ public class CsvRsInputStream extends InputStream {
         // more than len/2 runs the risk of incurring the expensive write-back operation below too often
         while (buffer.size() <= len/2 && !noMoreRows) {
             try {
+                if(log.isDebugEnabled()) {
+                    log.debug("calling nextLine(); buffer size: " + buffer.size());
+                }
                 nextLine();
                 csvWriter.flush();
             } catch (SQLException e) {
@@ -115,8 +122,14 @@ public class CsvRsInputStream extends InputStream {
         }
 
         if (buffer.size() == 0) {
-            eof = true;
-            return -1;
+            // gzip doesn't like to "flush", but it will "finish"
+            gzipOS.finish();
+            csvWriter.flush();
+            if (buffer.size() == 0 ) {
+                eof = true;
+                return -1;
+            }
+            log.debug("There were more bytes after finish()!");
         }
 
         // copy buffer to array
@@ -154,9 +167,6 @@ public class CsvRsInputStream extends InputStream {
     }
 
     private void nextLine() throws SQLException, IOException {
-        if(log.isDebugEnabled()) {
-            log.debug("nextLine() called");
-        }
         if(noMoreRows || !rs.next()) {
             if(log.isDebugEnabled()) {
                 log.debug("ResultSet exhausted");
