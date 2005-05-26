@@ -60,6 +60,7 @@ public class SQLReport implements CronJob {
     private String attachmentName;
     private String mimeType = "application/csv";
     private String charset = "ISO-8859-1";
+    private String compression = CsvRsInputStream.NO_COMPRESSION;
 
     // Email
     private String mailHost;
@@ -92,6 +93,10 @@ public class SQLReport implements CronJob {
 
     public void setMailHost(String mailHost) {
         this.mailHost = mailHost;
+    }
+
+    public void setCompression(String compression) {
+        this.compression = compression;
     }
 
     /**
@@ -235,7 +240,8 @@ public class SQLReport implements CronJob {
                 ps = con.prepareStatement(query);
                 rs = ps.executeQuery();
 
-                CsvRsDataSource ds = new CsvRsDataSource(rs, false, attachmentName, mimeType, charset, columnNames);
+                CsvRsDataSource ds = new CsvRsDataSource(rs, false, attachmentName, mimeType,
+                        charset, compression, columnNames);
                 bodyPart = new MimeBodyPart();
                 bodyPart.setFileName(ds.getName());
                 bodyPart.setDisposition(MimeBodyPart.ATTACHMENT);

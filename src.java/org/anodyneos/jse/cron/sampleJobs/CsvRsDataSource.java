@@ -24,12 +24,14 @@ public class CsvRsDataSource implements DataSource {
     private boolean closeRs;
     private String mimeType;
     private String charset;
+    private String compression = CsvRsInputStream.NO_COMPRESSION;
 
     private boolean alreadyUsed = false;
 
     public static final Log log = LogFactory.getLog(CsvRsDataSource.class);
 
-    public CsvRsDataSource(ResultSet rs, boolean closeRs, String name, String mimeType, String charset, List cols) {
+    public CsvRsDataSource(ResultSet rs, boolean closeRs, String name, String mimeType, String charset,
+            String compression, List cols) {
         this.rs = rs;
         //this.query = query;
         this.name = name;
@@ -37,22 +39,31 @@ public class CsvRsDataSource implements DataSource {
         this.closeRs=closeRs;
         this.mimeType = mimeType;
         this.charset = charset;
+        this.compression = compression;
     }
 
     public String getContentType() {
         String contentType;
-        if (null == mimeType && null == charset) {
-            contentType = "text/plain";
-        } else if (null == charset) {
-            contentType = mimeType;
+        if (CsvRsInputStream.GZIP_COMPRESSION.equals(compression)) {
+            return "application/x-gzip";
         } else {
-            contentType = mimeType + "; charset=" + charset;
+            if (null == mimeType && null == charset) {
+                contentType = "text/plain";
+            } else if (null == charset) {
+                contentType = mimeType;
+            } else {
+                contentType = mimeType + "; charset=" + charset;
+            }
         }
         return contentType;
     }
 
     public String getName() {
-        return name;
+        if (CsvRsInputStream.GZIP_COMPRESSION.equals(compression)) {
+            return name + ".gz";
+        } else {
+            return name;
+        }
     }
 
     public InputStream getInputStream() throws IOException {
@@ -65,7 +76,7 @@ public class CsvRsDataSource implements DataSource {
         alreadyUsed = true;
 
         try {
-            return new BufferedInputStream(new CsvRsInputStream(rs, cols, closeRs, charset), 8192);
+            return new BufferedInputStream(new CsvRsInputStream(rs, cols, closeRs, charset, compression), 8192);
         } catch (SQLException e) {
             throw new IOException(e.getMessage());
         }
