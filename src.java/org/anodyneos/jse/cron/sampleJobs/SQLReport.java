@@ -58,6 +58,8 @@ public class SQLReport implements CronJob {
      * The name of the attachment, for example, reportOutput.csv.
      */
     private String attachmentName;
+    private String mimeType = "application/csv";
+    private String charset = "ISO-8859-1";
 
     // Email
     private String mailHost;
@@ -75,7 +77,7 @@ public class SQLReport implements CronJob {
     /**
      * In cron.xml, this is a comma separated list of column display names.
      */
-    private List columnNames = new ArrayList();
+    private List columnNames;
 
     /**
      * Default constructor, required by Jse/Cron.
@@ -147,6 +149,19 @@ public class SQLReport implements CronJob {
         this.subject = subject;
     }
 
+    public String getCharset() {
+        return charset;
+    }
+    public void setCharset(String charset) {
+        this.charset = charset;
+    }
+    public String getMimeType() {
+        return mimeType;
+    }
+    public void setMimeType(String mimeType) {
+        this.mimeType = mimeType;
+    }
+
     public void setQueryFile(String queryFile) throws FileNotFoundException, IOException {
         Reader in  = new FileReader(queryFile);
         StringBuffer buf = new StringBuffer();
@@ -164,10 +179,19 @@ public class SQLReport implements CronJob {
     }
 
     public void setColumnNames(String s) {
-        // TODO split on commas
+        if (log.isDebugEnabled()) {
+            log.debug("setColumnNames(\"" + s + "\")");
+        }
+        if (null == columnNames) {
+            columnNames = new ArrayList();
+        }
         StringTokenizer st = new StringTokenizer(s, ",");
         while (st.hasMoreTokens()) {
-            this.columnNames.add(st.nextToken().trim());
+            String tok = st.nextToken().trim();
+            if (log.isDebugEnabled()) {
+                log.debug("Adding column '" + tok + "'");
+            }
+            this.columnNames.add(tok);
         }
     }
 
@@ -175,10 +199,9 @@ public class SQLReport implements CronJob {
      * @see org.anodyneos.jse.JseDateAwareJob#run(java.util.Date)
      */
     public void run(Date runDate) {
-        System.out.println("Running query:");
-        System.out.println(columnNames);
-        System.out.println(query);
-        System.out.println();
+        if (log.isDebugEnabled()) {
+            log.debug("running query: " + query);
+        }
         sendMessage();
     }
 
@@ -212,20 +235,21 @@ public class SQLReport implements CronJob {
                 ps = con.prepareStatement(query);
                 rs = ps.executeQuery();
 
-                CsvRsDataSource ds = new CsvRsDataSource(rs, false, attachmentName, new ArrayList());
+                CsvRsDataSource ds = new CsvRsDataSource(rs, false, attachmentName, mimeType, charset, columnNames);
                 bodyPart = new MimeBodyPart();
                 bodyPart.setFileName(ds.getName());
                 bodyPart.setDisposition(MimeBodyPart.ATTACHMENT);
                 DataHandler dh = new DataHandler(ds);
                 bodyPart.setDataHandler(dh);
                 multiPart.addBodyPart(bodyPart);
-                bodyPart.setHeader("Content-Transfer-Encoding", "7bit");
-                //bodyPart.setHeader("Content-Type", "text/plain; charset=us-ascii");
-                /*
-                bodyPart = new MimeBodyPart(new ReaderInputStream(new CsvRsReader(rs, false)));
-                multiPart.addBodyPart(bodyPart);
-                */
-
+                // The following line is very important; without it, the stream is read twice by Transport.send(),
+                // once to determine and encoding, and once to craft the attachment.
+                // Note: 7bit is no good - can't handle lines longer than 1000 chars
+                //       base64 is ok, but not human readable - better for binary
+                //       quoted-printable works pretty well
+                //bodyPart.setHeader("Content-Transfer-Encoding", "7bit");
+                //bodyPart.setHeader("Content-Transfer-Encoding", "base64");
+                bodyPart.setHeader("Content-Transfer-Encoding", "quoted-printable");
                 msg.setContent(multiPart);
                 msg.setSentDate(new Date());
                 if (log.isDebugEnabled()) {
@@ -238,9 +262,9 @@ public class SQLReport implements CronJob {
                 close(con);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.error("Cannot send message", e);
         } catch (MessagingException e) {
-            e.printStackTrace();
+            log.error("Cannot send message", e);
         }
     }
 

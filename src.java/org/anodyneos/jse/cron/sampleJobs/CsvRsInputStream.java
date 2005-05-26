@@ -1,22 +1,26 @@
 package org.anodyneos.jse.cron.sampleJobs;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStreamWriter;
 import java.io.Reader;
-import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
 import java.sql.Clob;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.util.List;
 
 import org.anodyneos.commons.text.CsvWriter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 /**
- * CsvRsReader allows a ResultSet to be read as a CSV text file.  Internally a CsvWriter is used.
- * In order to avoid creating a new thread, PipedReader/PipedWriter are not used.  Instead,
+ * CsvRsInputStream allows a ResultSet to be read as a CSV text file.  Internally a CsvWriter is used.
+ * In order to avoid creating a new thread, PipedInputStream/PipedWriter are not used.  Instead,
  * CsvWriter fills a buffer that is used to return content when read() is called on Objects of
  * this Class.  The buffer is filled one line at a time as needed based on calls to read().
  *
@@ -25,12 +29,13 @@ import org.apache.commons.logging.LogFactory;
  *
  * @author jvas
  */
-public class CsvRsReader extends Reader {
+public class CsvRsInputStream extends InputStream {
 
-    private static Log log = LogFactory.getLog(CsvRsReader.class);
+    private static Log log = LogFactory.getLog(CsvRsInputStream.class);
 
-    private StringWriter buffer = new StringWriter();
-    private CsvWriter csvWriter = new CsvWriter(buffer);
+    private ByteArrayOutputStream buffer;
+
+    private CsvWriter csvWriter;
     private ResultSet rs;
     private ResultSetMetaData md;
     private int columnCount;
@@ -39,52 +44,104 @@ public class CsvRsReader extends Reader {
     private boolean rsClosed = false;
     private boolean eof = false;
 
-    public CsvRsReader(ResultSet rs) throws SQLException {
-        this(rs, true);
+    public CsvRsInputStream(ResultSet rs, List cols, String encoding) throws SQLException, IOException,
+    UnsupportedEncodingException {
+        this(rs, cols, true, encoding);
     }
 
-    public CsvRsReader(ResultSet rs, boolean closeRsWhenDone) throws SQLException {
+    public CsvRsInputStream(ResultSet rs, List cols, boolean closeRsWhenDone, String encoding)
+    throws SQLException, IOException, UnsupportedEncodingException {
         this.closeRsWhenDone = closeRsWhenDone;
         this.rs = rs;
         this.md = rs.getMetaData();
         this.columnCount = md.getColumnCount();
+
+        this.buffer = new ByteArrayOutputStream();
+        if (log.isDebugEnabled()) {
+            log.debug("Using encoding: " + encoding);
+        }
+        this.csvWriter = new CsvWriter(new OutputStreamWriter(buffer, encoding));
+
+        // lets buffer the header now....
+        if (cols == null) {
+            int columnCount = md.getColumnCount();
+            for (int i = 1; i <= columnCount; i++) {
+                String colName = md.getColumnName(i);
+                if (log.isDebugEnabled()) {
+                    log.debug("Writing column header: " + colName);
+                }
+                csvWriter.writeField(colName);
+            }
+        } else {
+            for (int i=0; i < cols.size(); i++) {
+                String colName = cols.get(i).toString();
+                if (log.isDebugEnabled()) {
+                    log.debug("Writing column header: " + colName);
+                }
+                csvWriter.writeField(colName);
+            }
+        }
+        csvWriter.endRecord();
+        csvWriter.flush();
     }
 
-    public int read(char[] cbuf, int off, int len) throws IOException {
-        if (log.isDebugEnabled()) {
-            log.debug("read() called");
+    public final int read() throws IOException {
+        byte[] bytes = new byte[1];
+        int numRead = 0;
+        while (numRead != -1 && numRead != 1) {
+            numRead = read(bytes, 0, 1);
         }
+        if (numRead == -1) {
+            return -1;
+        } else {
+            return bytes[0];
+        }
+    }
+
+    public final int read(byte[] buf, int off, int len) throws IOException {
         if (eof) {
             return -1;
         }
 
-        StringBuffer sb = buffer.getBuffer();
-        while (sb.length() == 0 && !noMoreRows) {
+        // lets try to fill at least 1/2 the bytes requested
+        // more than len/2 runs the risk of incurring the expensive write-back operation below too often
+        while (buffer.size() <= len/2 && !noMoreRows) {
             try {
                 nextLine();
+                csvWriter.flush();
             } catch (SQLException e) {
                 throw new IOException(e.getMessage());
             }
         }
 
-        if (sb.length() == 0) {
+        if (buffer.size() == 0) {
             eof = true;
             return -1;
         }
 
         // copy buffer to array
         int numRead;
-        if (len < sb.length()) {
+        int bufferSize = buffer.size();
+        if (len < bufferSize) {
             numRead = len;
         } else {
-            numRead = sb.length();
+            numRead = bufferSize;
         }
-        for (int i = off; i < off + numRead; i++) {
-            cbuf[i] = sb.charAt(i - off);
-        }
-        log.debug(sb.substring(0, numRead));
-        sb.delete(0, numRead);
 
+        if (numRead > 0) {
+            byte[] bufferBytes = buffer.toByteArray();
+            for (int i = off; i < off + numRead; i++) {
+                buf[i] = bufferBytes[i - off];
+            }
+
+            // expensive, but necessary: delete out the head end of the buffer
+            buffer.reset();
+            log.debug("max bytes to read / numread: " + len + "/" + numRead);
+            if (numRead < bufferSize) {
+                log.debug("Storing back bytes:" + (bufferSize - numRead));
+                buffer.write(bufferBytes, numRead, bufferSize - numRead);
+            }
+        }
         return numRead;
     }
 
@@ -100,7 +157,7 @@ public class CsvRsReader extends Reader {
         if(log.isDebugEnabled()) {
             log.debug("nextLine() called");
         }
-        if(! rs.next()) {
+        if(noMoreRows || !rs.next()) {
             if(log.isDebugEnabled()) {
                 log.debug("ResultSet exhausted");
             }
@@ -149,7 +206,7 @@ public class CsvRsReader extends Reader {
             try {
                 rs.close();
             } catch (SQLException e) {
-                e.printStackTrace();
+                log.warn("Exception closing ResultSet", e);
             }
         }
     }

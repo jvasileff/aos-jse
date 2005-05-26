@@ -1,19 +1,12 @@
-/*
- * Created on May 24, 2005
- *
- * TODO To change the template for this generated file go to
- * Window - Preferences - Java - Code Style - Code Templates
- */
 package org.anodyneos.jse.cron.sampleJobs;
 
-import java.io.FileInputStream;
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.logging.Logger;
 
 import javax.activation.DataSource;
 
@@ -29,19 +22,33 @@ public class CsvRsDataSource implements DataSource {
     private String name;
     private List cols;
     private boolean closeRs;
+    private String mimeType;
+    private String charset;
+
+    private boolean alreadyUsed = false;
 
     public static final Log log = LogFactory.getLog(CsvRsDataSource.class);
 
-    public CsvRsDataSource(ResultSet rs, boolean closeRs, String name, List cols) {
+    public CsvRsDataSource(ResultSet rs, boolean closeRs, String name, String mimeType, String charset, List cols) {
         this.rs = rs;
         //this.query = query;
         this.name = name;
         this.cols = cols;
         this.closeRs=closeRs;
+        this.mimeType = mimeType;
+        this.charset = charset;
     }
 
     public String getContentType() {
-        return "text/csv; charset=UTF-8";
+        String contentType;
+        if (null == mimeType && null == charset) {
+            contentType = "text/plain";
+        } else if (null == charset) {
+            contentType = mimeType;
+        } else {
+            contentType = mimeType + "; charset=" + charset;
+        }
+        return contentType;
     }
 
     public String getName() {
@@ -52,12 +59,16 @@ public class CsvRsDataSource implements DataSource {
         if (log.isDebugEnabled()) {
             log.debug("getInputStream() called.");
         }
+        if (alreadyUsed) {
+            throw new IllegalStateException("Sorry, can only call getInputStream() once for this datasource");
+        }
+        alreadyUsed = true;
+
         try {
-            return new ReaderInputStream(new CsvRsReader(rs, closeRs));
-            //return new FileInputStream("/tmp/myfile");
+            return new BufferedInputStream(new CsvRsInputStream(rs, cols, closeRs, charset), 8192);
         } catch (SQLException e) {
             throw new IOException(e.getMessage());
-        } finally {}
+        }
     }
 
     public OutputStream getOutputStream() throws IOException {
