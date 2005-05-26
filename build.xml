@@ -24,6 +24,12 @@
     <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     ~~  required jars
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+    <property name="anodyneos-commons.jar" location="${dir.jars}/anodyneos-commons-20050414.00/anodyneos-commons.jar"/>
+    <property name="ojdbc14.jar" location="${dir.jars.commercial}/oracle-10.1.0.2.0/ojdbc14.jar"/>
+
+    <property name="commons-logging.jar" location="${dir.jars}/commons-logging-1.0.3/commons-logging.jar"/>
+    <property name="log4j-1.2.8.jar" location="${dir.jars}/jakarta-log4j-1.2.8/log4j-1.2.8.jar"/>
+
     <property name="xercesImpl.jar" location="${dir.jars}/xerces-2.6.0/xercesImpl.jar"/>
     <property name="xml-apis.jar" location="${dir.jars}/xerces-2.6.0/xml-apis.jar"/>
     <property name="mailapi.jar" location="${dir.jars.notfree}/javamail-1.3.1/mailapi.jar"/>
@@ -36,6 +42,12 @@
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
     <target name="prepare.post">
         <!-- ide.lib -->
+        <copy toDir="${dir.build.ide.lib}" file="${anodyneos-commons.jar}"/>
+        <copy toDir="${dir.build.ide.lib}" file="${ojdbc14.jar}"/>
+
+        <copy toDir="${dir.build.ide.lib}" file="${commons-logging.jar}"/>
+        <copy toDir="${dir.build.ide.lib}" file="${log4j-1.2.8.jar}"/>
+
         <copy toDir="${dir.build.ide.lib}" file="${xercesImpl.jar}"/>
         <copy toDir="${dir.build.ide.lib}" file="${xml-apis.jar}"/>
         <copy toDir="${dir.build.ide.lib}" file="${mailapi.jar}"/>
