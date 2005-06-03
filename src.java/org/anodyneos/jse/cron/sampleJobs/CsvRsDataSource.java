@@ -46,6 +46,8 @@ public class CsvRsDataSource implements DataSource {
         String contentType;
         if (CsvRsInputStream.GZIP_COMPRESSION.equals(compression)) {
             return "application/x-gzip";
+        } else if (CsvRsInputStream.ZIP_COMPRESSION.equals(compression)) {
+            return "application/zip";
         } else {
             if (null == mimeType && null == charset) {
                 contentType = "text/plain";
@@ -61,6 +63,8 @@ public class CsvRsDataSource implements DataSource {
     public String getName() {
         if (CsvRsInputStream.GZIP_COMPRESSION.equals(compression)) {
             return name + ".gz";
+        } else if (CsvRsInputStream.ZIP_COMPRESSION.equals(compression)) {
+            return name + ".zip";
         } else {
             return name;
         }
@@ -76,7 +80,8 @@ public class CsvRsDataSource implements DataSource {
         alreadyUsed = true;
 
         try {
-            return new BufferedInputStream(new CsvRsInputStream(rs, cols, closeRs, charset, compression), 8192);
+            CsvRsInputStream is = new CsvRsInputStream(rs, cols, closeRs, charset, compression, name);
+            return new BufferedInputStream(is, 8192);
         } catch (SQLException e) {
             throw new IOException(e.getMessage());
         }

@@ -14,6 +14,8 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.List;
 import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import org.anodyneos.commons.text.CsvWriter;
 import org.apache.commons.logging.Log;
@@ -38,6 +40,7 @@ public class CsvRsInputStream extends InputStream {
     public static final String GZIP_COMPRESSION = "GZIP_COMPRESSION";
     public static final String ZIP_COMPRESSION = "ZIP_COMPRESSION";
 
+    private ZipOutputStream zipOS;
     private GZIPOutputStream gzipOS;
     private ByteArrayOutputStream buffer;
 
@@ -52,10 +55,11 @@ public class CsvRsInputStream extends InputStream {
 
     public CsvRsInputStream(ResultSet rs, List cols, String encoding) throws SQLException, IOException,
     UnsupportedEncodingException {
-        this(rs, cols, true, encoding, NO_COMPRESSION);
+        this(rs, cols, true, encoding, NO_COMPRESSION, null);
     }
 
-    public CsvRsInputStream(ResultSet rs, List cols, boolean closeRsWhenDone, String encoding, String compression)
+    public CsvRsInputStream(ResultSet rs, List cols, boolean closeRsWhenDone, String encoding, String compression,
+            String zipFileName)
     throws SQLException, IOException, UnsupportedEncodingException {
         this.closeRsWhenDone = closeRsWhenDone;
         this.rs = rs;
@@ -70,6 +74,12 @@ public class CsvRsInputStream extends InputStream {
         if (GZIP_COMPRESSION.equals(compression)) {
             this.gzipOS = new GZIPOutputStream(buffer);
             this.csvWriter = new CsvWriter(new OutputStreamWriter(gzipOS, encoding));
+        } else if (ZIP_COMPRESSION.equals(compression)) {
+            this.zipOS = new ZipOutputStream(buffer);
+            ZipEntry zipEntry = new ZipEntry(zipFileName);
+            zipEntry.setMethod(ZipEntry.DEFLATED);
+            zipOS.putNextEntry(zipEntry);
+            this.csvWriter = new CsvWriter(new OutputStreamWriter(zipOS, encoding));
         } else {
             this.csvWriter = new CsvWriter(new OutputStreamWriter(buffer, encoding));
         }
@@ -133,6 +143,15 @@ public class CsvRsInputStream extends InputStream {
             if (gzipOS != null) {
                 // gzip doesn't like to "flush", but it will "finish"
                 gzipOS.finish();
+                csvWriter.flush();
+                if (buffer.size() == 0 ) {
+                    eof = true;
+                    return -1;
+                }
+                log.debug("There were more bytes after finish()!");
+            } else if (zipOS != null) {
+                // zip doesn't like to "flush", but it will "finish"
+                zipOS.finish();
                 csvWriter.flush();
                 if (buffer.size() == 0 ) {
                     eof = true;
