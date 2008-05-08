@@ -10,6 +10,9 @@
 
     <property file="build.properties"/>
 
+    <property name="compile.source" value="1.4"/>
+    <property name="compile.target" value="1.4"/>
+
     <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     ~~  common
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
@@ -27,8 +30,8 @@
     <property name="anodyneos-commons.jar" location="${dir.jars}/anodyneos-commons-20050414.00/anodyneos-commons.jar"/>
     <property name="ojdbc14.jar" location="${dir.jars.commercial}/oracle-10.1.0.2.0/ojdbc14.jar"/>
 
-    <property name="commons-logging.jar" location="${dir.jars}/commons-logging-1.0.3/commons-logging.jar"/>
-    <property name="log4j-1.2.8.jar" location="${dir.jars}/jakarta-log4j-1.2.8/log4j-1.2.8.jar"/>
+    <property name="commons-logging-1.1.1.jar" location="${dir.jars}/commons-logging-1.1.1/commons-logging-1.1.1.jar"/>
+    <property name="log4j-1.2.15.jar" location="${dir.jars}/apache-log4j-1.2.15/log4j-1.2.15.jar"/>
 
     <property name="mailapi.jar" location="${dir.jars.notfree}/javamail-1.3.1/mailapi.jar"/>
     <property name="mail.jar" location="${dir.jars.notfree}/javamail-1.3.1/mail.jar"/>
@@ -43,8 +46,8 @@
         <copy toDir="${dir.build.ide.lib}" file="${anodyneos-commons.jar}"/>
         <copy toDir="${dir.build.ide.lib}" file="${ojdbc14.jar}"/>
 
-        <copy toDir="${dir.build.ide.lib}" file="${commons-logging.jar}"/>
-        <copy toDir="${dir.build.ide.lib}" file="${log4j-1.2.8.jar}"/>
+        <copy toDir="${dir.build.ide.lib}" file="${commons-logging-1.1.1.jar}"/>
+        <copy toDir="${dir.build.ide.lib}" file="${log4j-1.2.15.jar}"/>
 
         <copy toDir="${dir.build.ide.lib}" file="${mailapi.jar}"/>
         <copy toDir="${dir.build.ide.lib}" file="${mail.jar}"/>
