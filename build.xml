@@ -27,8 +27,7 @@
     <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     ~~  required jars
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
-    <property name="anodyneos-commons.jar" location="${dir.jars}/anodyneos-commons-20050414.00/anodyneos-commons.jar"/>
-    <property name="ojdbc14.jar" location="${dir.jars.commercial}/oracle-10.1.0.2.0/ojdbc14.jar"/>
+    <property name="anodyneos-commons.jar" location="${dir.jars}/anodyneos-commons-0.3/anodyneos-commons.jar"/>
 
     <property name="commons-logging-1.1.1.jar" location="${dir.jars}/commons-logging-1.1.1/commons-logging-1.1.1.jar"/>
     <property name="log4j-1.2.15.jar" location="${dir.jars}/apache-log4j-1.2.15/log4j-1.2.15.jar"/>
@@ -44,7 +43,6 @@
     <target name="prepare.post">
         <!-- ide.lib -->
         <copy toDir="${dir.build.ide.lib}" file="${anodyneos-commons.jar}"/>
-        <copy toDir="${dir.build.ide.lib}" file="${ojdbc14.jar}"/>
 
         <copy toDir="${dir.build.ide.lib}" file="${commons-logging-1.1.1.jar}"/>
         <copy toDir="${dir.build.ide.lib}" file="${log4j-1.2.15.jar}"/>
