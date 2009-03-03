@@ -37,6 +37,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.anodyneos.jse.JseDateAwareJob;
 import org.anodyneos.jse.JseException;
 import org.anodyneos.jse.JseTimerService;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -48,6 +50,8 @@ import org.xml.sax.InputSource;
  *  @version $Id: CronServer.java,v 1.2 2004-05-13 03:42:03 jvas Exp $
  */
 public class CronServer {
+
+    private static final Log log = LogFactory.getLog(CronServer.class);
 
     private static final String ELEMENT = "element";
     private static final String ATTRIBUTE = "attribute";
@@ -81,7 +85,6 @@ public class CronServer {
 
     public CronServer(InputSource source) throws JseException {
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-        CronLogger logger = new CronDefaultLogger();
 
         // parse source, create and load timerServices
         Document doc = null;
@@ -112,8 +115,8 @@ public class CronServer {
                 if(config.hasAttribute(A_CLASS_PATH_RESOURCE)) {
                     springHelper.addConfigLocation(config.getAttribute(A_CLASS_PATH_RESOURCE));
                 }
-                springHelper.init();
             }
+            springHelper.init();
         }
 
         // E_JOB_GROUP
@@ -240,8 +243,9 @@ public class CronServer {
                             BeanUtil.set(obj, propertyName, value, propType);
                         }
                     }
+                    log.info("Adding job " + jobGroupName + "/" + jobName);
                     if (obj instanceof CronJob) {
-                        ((CronJob) obj).setCronContext(new CronContext(jobGroupName, jobName, schedule, logger));
+                        ((CronJob) obj).setCronContext(new CronContext(jobGroupName, jobName, schedule));
                     }
                     if (obj instanceof JseDateAwareJob) {
                         service.createTimer((JseDateAwareJob) obj, schedule);
@@ -250,17 +254,15 @@ public class CronServer {
                     } else {
                         throw new JseException("Job must implement Runnable or JseDateAwareJob");
                     }
-                    System.err.println("Adding job " + jobGroupName + "/" + jobName);
                 } catch (Exception exception) {
-                    System.err.println("Skipping job " + jobGroupName + "/" + jobName);
+                    StringBuilder sb = new StringBuilder();
+                    sb.append("Skipping job " + jobGroupName + "/" + jobName);
                     if (ELEMENT.equals(type)) {
-                        System.err.println("While processing <" + step + ">: ");
+                        sb.append(" - exception while processing element '" + step + "'");
                     } else {
-                        System.err.println("While processing attribute " + step + ": ");
+                        sb.append(" - exception while processing attribute '" + step + "'");
                     }
-                    exception.printStackTrace(System.err);
-                    //System.err.println("  " + exception.getMessage());
-                    System.err.println();
+                    log.error(sb.toString(), exception);
                 }
             }
         }
@@ -270,6 +272,7 @@ public class CronServer {
         Iterator it = timerServices.iterator();
         while(it.hasNext()) {
             JseTimerService service = (JseTimerService) it.next();
+            log.info("Starting service thread: " + service.getName());
             service.start();
         }
     }

@@ -38,8 +38,8 @@ import java.util.TreeSet;
  *  @version $Id: JseTimerService.java,v 1.2 2004-05-13 03:42:03 jvas Exp $
  */
 public class JseTimerService extends Thread {
-    JseRunner runner;
-    long lastMillis;
+    private JseRunner runner;
+    private long lastMillis;
 
     /** to help JobWrapper compareTo when nextDates are equal */
     private long idCounter = Long.MIN_VALUE;

@@ -24,7 +24,6 @@
 
 package org.anodyneos.jse.cron;
 
-import java.io.PrintWriter;
 import java.util.Date;
 
 /**
@@ -43,11 +42,7 @@ public class SampleCronJob implements CronJob {
     }
 
     public void run(Date runDate) {
-        //ctx.logStandard("run w/param: " + runDate + " " + dbPassword);
-        ctx.logError("Dummy error");
-        PrintWriter out = ctx.getPrintWriterStandard();
-        out.print("run w/param: " + runDate + " " + dbPassword);
-        out.close();
+        System.out.println("run w/param: " + runDate + " " + dbPassword);
     }
 
     public void setCronContext(CronContext ctx) {

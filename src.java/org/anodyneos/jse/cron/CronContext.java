@@ -24,25 +24,16 @@
 
 package org.anodyneos.jse.cron;
 
-import java.io.PrintWriter;
-
-/**
- *  @version $Id: CronContext.java,v 1.2 2004-05-13 03:42:03 jvas Exp $
- */
 public class CronContext {
     private String jobName;
     private String jobGroupName;
     private CronSchedule schedule;
-    private CronLogger logger;
-    //private CronLoggerFactory loggerFactory;
 
-    public CronContext(String jobGroupName, String jobName, CronSchedule schedule, CronLogger logger) {
+    public CronContext(String jobGroupName, String jobName, CronSchedule schedule) {
         this.jobName = jobName;
         this.jobGroupName = jobGroupName;
         this.schedule = schedule;
-        this.logger = logger;
     }
-
     public String getJobName() {
         return jobName;
     }
@@ -53,26 +44,5 @@ public class CronContext {
         return schedule;
     }
 
-    public void logStandard(String message) {
-        logger.logStandard(message, this);
-    }
-    public void logWarning(String message) {
-        logger.logWarning(message, this);
-    }
-    public void logError(String message) {
-        logger.logError(message, this);
-    }
-
-    public PrintWriter getPrintWriterStandard() {
-        return logger.getPrintWriterStandard(this);
-    }
-
-    public PrintWriter getPrintWriterWarning() {
-        return logger.getPrintWriterWarning(this);
-    }
-
-    public PrintWriter getPrintWriterError() {
-        return logger.getPrintWriterError(this);
-    }
 
 }

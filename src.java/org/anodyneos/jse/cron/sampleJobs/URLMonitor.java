@@ -28,11 +28,15 @@ import javax.mail.internet.MimeMessage;
 
 import org.anodyneos.jse.cron.CronContext;
 import org.anodyneos.jse.cron.CronJob;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * @author jvas
  */
 public class URLMonitor implements CronJob {
+
+    private static final Log log = LogFactory.getLog(URLMonitor.class);
 
     private CronContext ctx;
 
@@ -63,7 +67,7 @@ public class URLMonitor implements CronJob {
     }
 
     public void run(Date runDate) {
-        System.err.println("urlmon run: "+runDate);
+        log.info("urlmon run: "+runDate);
         String content = null;
         try {
             URLConnection conn = targetURL.openConnection();
@@ -195,10 +199,10 @@ public class URLMonitor implements CronJob {
         Session session = Session.getDefaultInstance(props, null);
         session.setDebug(false);
 
-        System.err.println("-----");
-        System.err.println("SUBJECT:" + subject);
-        System.err.println("BODY:" + body);
-        System.err.println("-----");
+        log.info("-----");
+        log.info("SUBJECT:" + subject);
+        log.info("BODY:" + body);
+        log.info("-----");
 
         try {
             Message message = new MimeMessage(session);
@@ -215,7 +219,8 @@ public class URLMonitor implements CronJob {
             Transport.send(message);
 
         } catch (MessagingException e) {
-            e.printStackTrace(ctx.getPrintWriterError());
+            log.error("Failed to send email", e);
         }
     }
+
 }
