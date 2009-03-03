@@ -49,9 +49,9 @@ import org.xml.sax.InputSource;
 /**
  *  @version $Id: CronServer.java,v 1.2 2004-05-13 03:42:03 jvas Exp $
  */
-public class CronServer {
+public class CronDaemon {
 
-    private static final Log log = LogFactory.getLog(CronServer.class);
+    private static final Log log = LogFactory.getLog(CronDaemon.class);
 
     private static final String ELEMENT = "element";
     private static final String ATTRIBUTE = "attribute";
@@ -83,7 +83,7 @@ public class CronServer {
     private ArrayList timerServices = new ArrayList();
     private SpringHelper springHelper;
 
-    public CronServer(InputSource source) throws JseException {
+    public CronDaemon(InputSource source) throws JseException {
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 
         // parse source, create and load timerServices
@@ -279,7 +279,7 @@ public class CronServer {
 
     public static void main(String[] args) throws Exception {
         InputSource source = new InputSource(args[0]);
-        CronServer server = new CronServer(source);
+        CronDaemon server = new CronDaemon(source);
         server.start();
     }
 

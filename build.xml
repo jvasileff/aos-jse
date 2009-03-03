@@ -68,11 +68,11 @@
     </target>
 
     <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    ~~  cronServer
+    ~~  cronDaemon
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
 
-    <target name="cronServer" depends="compile" description="Run CronServer">
-        <java taskname="run" fork="yes" classname="org.anodyneos.jse.cron.CronServer">
+    <target name="cronDaemon" depends="compile" description="Run CronDaemon">
+        <java taskname="run" fork="yes" classname="org.anodyneos.jse.cron.CronDaemon">
             <arg line="${cronConfigFile}"/>
             <sysproperty key="test.prop.22" value="22"/>
             <classpath refid="path.compile"/>
