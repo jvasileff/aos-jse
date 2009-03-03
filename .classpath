@@ -9,5 +9,6 @@
 	<classpathentry kind="lib" path="build/ide.lib/anodyneos-commons.jar"/>
 	<classpathentry kind="lib" path="build/ide.lib/commons-logging-1.1.1.jar"/>
 	<classpathentry kind="lib" path="build/ide.lib/log4j-1.2.15.jar"/>
+	<classpathentry kind="lib" path="build/ide.lib/spring.jar"/>
 	<classpathentry kind="output" path="build/ide.classes"/>
 </classpath>

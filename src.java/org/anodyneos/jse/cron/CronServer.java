@@ -53,14 +53,18 @@ public class CronServer {
     private static final String ATTRIBUTE = "attribute";
 
     private static final String E_SCHEDULE = "schedule";
+    private static final String E_SPRING_CONTEXT = "spring-context";
+    private static final String E_CONFIG = "config";
     private static final String E_JOB_GROUP = "job-group";
     private static final String E_JOB = "job";
     private static final String E_PROPERTY = "property";
 
     private static final String A_TIME_ZONE = "time-zone";
+    private static final String A_CLASS_PATH_RESOURCE = "class-path-resource";
     private static final String A_MAX_CONCURRENT = "max-concurrent";
     private static final String A_NAME = "name";
     private static final String A_CLASS_NAME = "class";
+    private static final String A_SPRING_BEAN = "spring-bean";
     private static final String A_SCHEDULE = "schedule";
     private static final String A_MAX_ITERATIONS = "max-iterations";
     private static final String A_MAX_QUEUE = "max-queue";
@@ -73,6 +77,7 @@ public class CronServer {
 
 
     private ArrayList timerServices = new ArrayList();
+    private SpringHelper springHelper;
 
     public CronServer(InputSource source) throws JseException {
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
@@ -94,6 +99,21 @@ public class CronServer {
         Element sch = (Element) doc.getElementsByTagName(E_SCHEDULE).item(0);
         if (sch.hasAttribute(A_TIME_ZONE)) {
             defaultTimeZone = getTimeZone(sch.getAttribute(A_TIME_ZONE));
+        }
+
+        // E_SPRING_CONTEXT
+        NodeList springNL = doc.getElementsByTagName(E_SPRING_CONTEXT);
+        if (springNL.getLength() > 0) {
+            springHelper = new SpringHelper();
+            Element springContext = (Element) springNL.item(0);
+            NodeList configs = springContext.getElementsByTagName(E_CONFIG);
+            for(int i = 0; i < configs.getLength(); i++) {
+                Element config = (Element) configs.item(i);
+                if(config.hasAttribute(A_CLASS_PATH_RESOURCE)) {
+                    springHelper.addConfigLocation(config.getAttribute(A_CLASS_PATH_RESOURCE));
+                }
+                springHelper.init();
+            }
         }
 
         // E_JOB_GROUP
@@ -122,19 +142,32 @@ public class CronServer {
                 // track progress for error reporting
                 String propertyName = null;
                 String jobName = "UNDEFINED";
+                String springBean = null;
                 String step = E_JOB;
                 String type = ELEMENT;
                 try {
+                    Object obj;
+                    boolean isSpringBean = false;
+
                     // A_NAME
                     step = A_NAME;
                     type = ATTRIBUTE;
                     if(job.hasAttribute(A_NAME)) {
                         jobName = job.getAttribute(A_NAME);
                     }
-                    // A_CLASS_NAME
-                    step = A_CLASS_NAME;
+                    // A_SPRING_BEAN
+                    step = A_SPRING_BEAN;
                     type = ATTRIBUTE;
-                    Object obj = BeanUtil.getInstance(job.getAttribute(A_CLASS_NAME));
+                    if (job.hasAttribute(A_SPRING_BEAN)) {
+                        obj = springHelper.getBean(job.getAttribute(A_SPRING_BEAN));
+                        isSpringBean = true;
+                    } else {
+                        // A_CLASS_NAME
+                        step = A_CLASS_NAME;
+                        type = ATTRIBUTE;
+                        obj = BeanUtil.getInstance(job.getAttribute(A_CLASS_NAME));
+                    }
+
                     // A_MAX_ITERATIONS
                     step = A_MAX_ITERATIONS;
                     type = ATTRIBUTE;
@@ -174,35 +207,38 @@ public class CronServer {
                     type = ATTRIBUTE;
                     CronSchedule schedule =
                             new CronSchedule(job.getAttribute(A_SCHEDULE), timeZone, numIterations, maxQueue, notBefore, notAfter);
-                    // E_PROPERTY
-                    step = E_PROPERTY;
-                    type = ELEMENT;
-                    NodeList properties = job.getElementsByTagName(E_PROPERTY);
-                    for(int p = 0; p < properties.getLength(); p++) {
-                        Element property = (Element) properties.item(p);
-                        property.normalize(); // join adjacent text nodes
-                        propertyName = property.getAttribute(A_NAME);
-                        String propType = property.getAttribute(A_TYPE);
-                        String systemProperty = property.getAttribute(A_SYSTEM_PROPERTY);
-                        String refId = property.getAttribute(A_REF_ID);
 
-                        propertyName = "".equals(propertyName) ? null : propertyName;
-                        propType = "".equals(propType) ? null : propType;
-                        systemProperty = "".equals(systemProperty) ? null : systemProperty;
-                        refId = "".equals(refId) ? null : refId;
+                    if (! isSpringBean) {
+                        // E_PROPERTY
+                        step = E_PROPERTY;
+                        type = ELEMENT;
+                        NodeList properties = job.getElementsByTagName(E_PROPERTY);
+                        for(int p = 0; p < properties.getLength(); p++) {
+                            Element property = (Element) properties.item(p);
+                            property.normalize(); // join adjacent text nodes
+                            propertyName = property.getAttribute(A_NAME);
+                            String propType = property.getAttribute(A_TYPE);
+                            String systemProperty = property.getAttribute(A_SYSTEM_PROPERTY);
+                            String refId = property.getAttribute(A_REF_ID);
 
-                        String value = null;
+                            propertyName = "".equals(propertyName) ? null : propertyName;
+                            propType = "".equals(propType) ? null : propType;
+                            systemProperty = "".equals(systemProperty) ? null : systemProperty;
+                            refId = "".equals(refId) ? null : refId;
 
-                        if (null != systemProperty) {
-                            // try to get value from system property;
-                            value = System.getProperty(systemProperty);
+                            String value = null;
+
+                            if (null != systemProperty) {
+                                // try to get value from system property;
+                                value = System.getProperty(systemProperty);
+                            }
+                            if (null == value) {
+                                // or get value from content of element
+                                value = getTextContent(property);
+                            }
+
+                            BeanUtil.set(obj, propertyName, value, propType);
                         }
-                        if (null == value) {
-                            // or get value from content of element
-                            value = getTextContent(property);
-                        }
-
-                        BeanUtil.set(obj, propertyName, value, propType);
                     }
                     if (obj instanceof CronJob) {
                         ((CronJob) obj).setCronContext(new CronContext(jobGroupName, jobName, schedule, logger));

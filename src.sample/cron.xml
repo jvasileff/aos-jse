@@ -3,6 +3,10 @@
     <!--
         notBefore="2002-11-14T21:37:00" notAfter="2002-11-14T21:37:10"
     -->
+    <spring-context>
+        <config class-path-resource="org/anodyneos/jse/cron/sampleJobs/context.xml"/>
+        <config class-path-resource="org/anodyneos/jse/cron/sampleJobs/context2.xml"/>
+    </spring-context>
 
     <job-group name="Group#1" max-concurrent="1">
         <job max-iterations="-1" name="job1" class="org.anodyneos.jse.cron.SampleJob" schedule="*/1 * * * * *" max-queue="1">
@@ -27,6 +31,13 @@
         <job max-iterations="1" name="job5" class="org.anodyneos.jse.cron.SampleCronJob" schedule="*/5 * * * * *" max-queue="1">
             <property name="dbPassword">5</property>
         </job>
+    </job-group>
+
+    <job-group name="Group#3" max-concurrent="1">
+        <job max-iterations="-1" name="springjob1" spring-bean="testSpringJob1" schedule="*/1 * * * * *" max-queue="1"/>
+        <job max-iterations="-1" name="springjob2" spring-bean="testSpringJob2" schedule="*/2 * * * * *" max-queue="1"/>
+        <job max-iterations="-1" name="springjob3" spring-bean="testSpringJob3" schedule="*/3 * * * * *" max-queue="1"/>
+        <job max-iterations="-1" name="springjob4" spring-bean="testSpringJob4" schedule="*/4 * * * * *" max-queue="1"/>
     </job-group>
 
 </schedule>
