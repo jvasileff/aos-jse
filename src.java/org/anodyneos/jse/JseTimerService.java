@@ -47,7 +47,7 @@ public class JseTimerService extends Thread {
     /**
      *  Tracks all actively managed jobs.  Values are JobWrappers.
      */
-    private TreeSet managedJobs = new TreeSet();
+    private TreeSet<JobWrapper> managedJobs = new TreeSet<JobWrapper>();
 
     /**
      *  Create a new JseTimerService.
@@ -119,7 +119,7 @@ public class JseTimerService extends Thread {
                 } catch (InterruptedException e) {
                 }
             }
-            JobWrapper jw = (JobWrapper) managedJobs.first();
+            JobWrapper jw = managedJobs.first();
             long nextTime = jw.nextDate.getTime();
             long millis = System.currentTimeMillis();
             if(null != jw && millis >= nextTime) {
@@ -143,7 +143,7 @@ public class JseTimerService extends Thread {
      *  class's <code>managedJobs</code>;  also supports management for
      *  Runnables.
      */
-    private final class JobWrapper implements Runnable, Comparable {
+    private final class JobWrapper implements Runnable, Comparable<JobWrapper> {
 
         private JseTimer timer;
 
@@ -159,7 +159,7 @@ public class JseTimerService extends Thread {
         /** next call to queue() should use this date */
         private Date nextDate;
         /** Used by run(Date) method of JseDateAwareJob */
-        private List dateQueue = new LinkedList();
+        private List<Date> dateQueue = new LinkedList<Date>();
         /** Number of iterations remaining; -1 == infinity */
         private int remainingIterations;
 
@@ -268,7 +268,7 @@ public class JseTimerService extends Thread {
             if (daJob != null) {
                 Date date;
                 synchronized(JseTimerService.this) {
-                    date = (Date) dateQueue.remove(0);
+                    date = dateQueue.remove(0);
                 }
                 daJob.run(date);
             } else {
@@ -283,9 +283,7 @@ public class JseTimerService extends Thread {
          *  consistent with equals at the expense of showing as equal two jobs
          *  with the same nextDate.
          */
-        public int compareTo(Object obj) {
-            JobWrapper that = (JobWrapper) obj;
-
+        public int compareTo(JobWrapper that) {
             int result = this.nextDate.compareTo(that.nextDate);
             if (result == 0) {
                 // ensure consistent with equals
@@ -305,13 +303,13 @@ public class JseTimerService extends Thread {
     }
 
     private class JseTimerImpl implements JseTimer {
-        WeakReference ref;
+        WeakReference<JobWrapper> ref;
 
         private JseTimerImpl(JobWrapper scheduledJob) {
-            ref = new WeakReference(scheduledJob);
+            ref = new WeakReference<JobWrapper>(scheduledJob);
         }
         private JobWrapper getJobWrapper() throws JseTimerExpiredException {
-            JobWrapper jw = (JobWrapper) ref.get();
+            JobWrapper jw = ref.get();
             if (null == jw || jw.remainingIterations == 0) {
                 throw new JseTimerExpiredException();
             } else {

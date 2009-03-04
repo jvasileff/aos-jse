@@ -1,8 +1,58 @@
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+    <xsd:element name="schedule" type="scheduleType"/>
+
+    <xsd:complexType name="scheduleType">
+        <xsd:sequence>
+            <xsd:element name="spring-context" type="springContextType" minOccurs="0"/>
+            <xsd:element name="job-group" type="jobGroupType" minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+        <xsd:attribute name="time-zone" type="xsd:string"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="springContextType">
+        <xsd:sequence>
+            <xsd:element name="config" type="configType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="configType">
+        <xsd:attribute name="class-path-resource" type="xsd:string"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="jobGroupType">
+        <xsd:sequence>
+            <xsd:element name="job" type="jobType" minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+        <xsd:attribute name="name" type="xsd:string"/>
+        <xsd:attribute name="max-concurrent" type="xsd:int"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="jobType">
+        <xsd:sequence>
+            <xsd:element name="property" type="propertyType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+        <xsd:attribute name="bean-ref" type="xsd:string"/>
+        <xsd:attribute name="bean" type="xsd:string"/>
+        <xsd:attribute name="class" type="xsd:string"/>
+        <xsd:attribute name="not-before" type="xsd:dateTime"/>
+        <xsd:attribute name="not-after" type="xsd:dateTime"/>
+        <xsd:attribute name="schedule" type="xsd:string"/>
+        <xsd:attribute name="max-iterations" type="xsd:int"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="propertyType">
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:string">
+                <xsd:attribute name="name" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+</xsd:schema>
+<!--
 <schedule time-zone="America/New_York">
 
-    <!--
-        notBefore="2002-11-14T21:37:00" notAfter="2002-11-14T21:37:10"
-    -->
     <spring-context>
         <config class-path-resource="org/anodyneos/jse/cron/sampleJobs/context.xml"/>
         <config class-path-resource="org/anodyneos/jse/cron/sampleJobs/context2.xml"/>
@@ -19,7 +69,6 @@
 
     <job-group name="Group#2" max-concurrent="1">
         <job max-iterations="1" name="job2" class="org.anodyneos.jse.cron.SampleDateAwareJob" schedule="*/2 * * * * *" max-queue="1">
-            <!-- <property name="dbPassword">2</property>-->
             <property name="dbPassword" system-property="test.prop.22">2</property>
         </job>
         <job max-iterations="1" name="job3" class="org.anodyneos.jse.cron.SampleDateAwareJob" schedule="*/3 * * * * *" max-queue="1">
@@ -41,3 +90,4 @@
     </job-group>
 
 </schedule>
+-->

@@ -43,7 +43,7 @@ public class URLMonitor implements CronJob {
     private URL targetURL;
     private String matchText;
     private String smtpServer;
-    private List toList = new ArrayList();
+    private List<InternetAddress> toList = new ArrayList<InternetAddress>();
     private int connectTimeoutMillis = 5000;
     private int readTimeoutMillis = 5000;
 
@@ -212,7 +212,7 @@ public class URLMonitor implements CronJob {
 
             message.addFrom(new InternetAddress[] {from});
             for (int i=0; i < toList.size(); i++) {
-                message.addRecipient(Message.RecipientType.TO, (InternetAddress) toList.get(i));
+                message.addRecipient(Message.RecipientType.TO, toList.get(i));
             }
 
             message.saveChanges();

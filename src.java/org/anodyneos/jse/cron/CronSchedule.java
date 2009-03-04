@@ -82,11 +82,11 @@ public final class CronSchedule implements JseSchedule {
     private Date notBeforeDate;
     private Date notAfterDate;
 
-    private static final HashMap dayMap;
-    private static final HashMap monthMap;
+    private static final HashMap<String, Integer> dayMap;
+    private static final HashMap<String, Integer> monthMap;
 
     static {
-        dayMap = new HashMap();
+        dayMap = new HashMap<String, Integer>();
         dayMap.put("sun", new Integer(0));
         dayMap.put("mon", new Integer(1));
         dayMap.put("tue", new Integer(2));
@@ -98,7 +98,7 @@ public final class CronSchedule implements JseSchedule {
     }
 
     static {
-        monthMap = new HashMap();
+        monthMap = new HashMap<String, Integer>();
         monthMap.put("jan", new Integer(1));
         monthMap.put("feb", new Integer(2));
         monthMap.put("mar", new Integer(3));
@@ -158,19 +158,19 @@ public final class CronSchedule implements JseSchedule {
         this.dummyCal = new GregorianCalendar(timeZone);
         this.dummyCal.setLenient(false);
 
-        ArrayList l = split(scheduleString);
+        ArrayList<String> l = split(scheduleString);
 
         if (l.size() != 6) {
             throw new CronParseException("invalid schedule, must have 6 tokens: '" + scheduleString + "'");
         }
 
         int i = 0;
-        secondBitmap = processSeconds((String) l.get(i++));
-        minuteBitmap = processMinutes((String) l.get(i++));
-        hourBitmap = processHours((String) l.get(i++));
-        dayOfMonthBitmap = processDaysOfMonth((String) l.get(i++));
-        monthBitmap = processMonths((String) l.get(i++));
-        dayOfWeekBitmap = processDaysOfWeek((String) l.get(i++));
+        secondBitmap = processSeconds(l.get(i++));
+        minuteBitmap = processMinutes(l.get(i++));
+        hourBitmap = processHours(l.get(i++));
+        dayOfMonthBitmap = processDaysOfMonth(l.get(i++));
+        monthBitmap = processMonths(l.get(i++));
+        dayOfWeekBitmap = processDaysOfWeek(l.get(i++));
     }
 
     public final Date getNextTimeout(Date start) {
@@ -207,7 +207,7 @@ public final class CronSchedule implements JseSchedule {
     }
 
     public final Date[] getDates(Date startDate, Date endDate) {
-        ArrayList al = new ArrayList();
+        ArrayList<Date> al = new ArrayList<Date>();
         while(true) {
             startDate = getNextTimeout(startDate);
             if (startDate == null || startDate.after(endDate)) {
@@ -217,7 +217,7 @@ public final class CronSchedule implements JseSchedule {
                 startDate = new Date(startDate.getTime() + 1);
             }
         }
-        return (Date[]) al.toArray(new Date[al.size()]);
+        return al.toArray(new Date[al.size()]);
     }
 
     private synchronized int lastDayInMonth(int year, int month) {
@@ -340,15 +340,15 @@ public final class CronSchedule implements JseSchedule {
     private static final boolean[] processRangeString(
             String s,
             int lowerBounds, int upperBounds,
-            HashMap valueMap, boolean wrap) throws CronParseException {
+            HashMap<String, Integer> valueMap, boolean wrap) throws CronParseException {
         boolean[] bitmap = new boolean[upperBounds - lowerBounds + 1];
-        ArrayList ranges = split(s, ',');
+        ArrayList<String> ranges = split(s, ',');
         if (ranges.size() == 0) {
             throw new CronParseException("range must not be empty: '" + s + "'");
         }
 
         for(int i = 0; i < ranges.size(); i++) {
-            String range = (String) ranges.get(i);
+            String range = ranges.get(i);
             if (range.length() == 0) {
                 throw new CronParseException("range part must not be empty: '" + s + "'");
             }
@@ -358,17 +358,17 @@ public final class CronSchedule implements JseSchedule {
                 break;
             }
 
-            ArrayList parts = split(range, '/');
+            ArrayList<String> parts = split(range, '/');
             if (parts.size() > 2) {
                 throw new CronParseException("syntax error (/): '" + range + "'");
             }
-            String rangePart = (String) parts.get(0);
+            String rangePart = parts.get(0);
             int stepPart = 1;
             int start;
             int end;
             if (parts.size() == 2) {
                 try {
-                    stepPart = Integer.parseInt((String) parts.get(1));
+                    stepPart = Integer.parseInt(parts.get(1));
                 } catch (NumberFormatException e) {
                     throw new CronParseException("syntax error (step): '" + range + "'");
                 }
@@ -377,15 +377,15 @@ public final class CronSchedule implements JseSchedule {
                 start = lowerBounds;
                 end = upperBounds;
             } else {
-                ArrayList rangeParts = split(rangePart, '-');
+                ArrayList<String> rangeParts = split(rangePart, '-');
                 if (rangeParts.size() > 2) {
                     throw new CronParseException("syntax error (-): '" + range + "'");
                 }
                 try {
-                    if (null != valueMap && valueMap.containsKey( ((String)rangeParts.get(0)).toLowerCase() )) {
-                        start = ((Integer)valueMap.get( ((String)rangeParts.get(0)).toLowerCase()) ).intValue();
+                    if (null != valueMap && valueMap.containsKey( rangeParts.get(0).toLowerCase() )) {
+                        start = valueMap.get( rangeParts.get(0).toLowerCase()).intValue();
                     } else {
-                        start = Integer.parseInt((String) rangeParts.get(0));
+                        start = Integer.parseInt(rangeParts.get(0));
                     }
                 } catch (NumberFormatException e) {
                     throw new CronParseException("syntax error (start): '" + range + "'");
@@ -393,10 +393,10 @@ public final class CronSchedule implements JseSchedule {
                 // don't causes problem with step: start = Math.max(start, lowerBounds);
                 if (rangeParts.size() == 2) {
                     try {
-                        if (null != valueMap && valueMap.containsKey( ((String)rangeParts.get(1)).toLowerCase() )) {
-                            end = ((Integer)valueMap.get( ((String)rangeParts.get(1)).toLowerCase()) ).intValue();
+                        if (null != valueMap && valueMap.containsKey( rangeParts.get(1).toLowerCase() )) {
+                            end = valueMap.get( rangeParts.get(1).toLowerCase()).intValue();
                         } else {
-                            end = Integer.parseInt((String) rangeParts.get(1));
+                            end = Integer.parseInt(rangeParts.get(1));
                         }
                     } catch (NumberFormatException e) {
                         throw new CronParseException("syntax error (end): '" + range + "'");
@@ -445,8 +445,8 @@ public final class CronSchedule implements JseSchedule {
         return bitmap;
     }
 
-    private static final ArrayList split(String s, char c) {
-        ArrayList list = new ArrayList();
+    private static final ArrayList<String> split(String s, char c) {
+        ArrayList<String> list = new ArrayList<String>();
         int startIndex = 0;
         int sepIndex;
 
@@ -461,8 +461,8 @@ public final class CronSchedule implements JseSchedule {
         return list;
     }
 
-    private static final ArrayList split(String s, String sep) {
-        ArrayList list = new ArrayList();
+    private static final ArrayList<String> split(String s, String sep) {
+        ArrayList<String> list = new ArrayList<String>();
         int sepLength = sep.length();
         int startIndex = 0;
         int sepIndex;
@@ -478,9 +478,9 @@ public final class CronSchedule implements JseSchedule {
         return list;
     }
 
-    private static final ArrayList split(String s) {
+    private static final ArrayList<String> split(String s) {
         char c = ' ';
-        ArrayList list = new ArrayList();
+        ArrayList<String> list = new ArrayList<String>();
         int startIndex = 0;
         int sepIndex;
 

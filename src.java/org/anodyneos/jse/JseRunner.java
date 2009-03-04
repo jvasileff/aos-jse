@@ -39,8 +39,8 @@ public class JseRunner extends Thread {
     public static final int DEFAULT_MAX_CONCURRENT = 1;
 
     private int maxConcurrent = DEFAULT_MAX_CONCURRENT;
-    private HashSet activeThreads = new HashSet();
-    private LinkedList jobQueue = new LinkedList();
+    private HashSet<RunnableThread> activeThreads = new HashSet<RunnableThread>();
+    private LinkedList<Runnable> jobQueue = new LinkedList<Runnable>();
     private boolean done = false;
 
     /**
@@ -117,7 +117,7 @@ public class JseRunner extends Thread {
                     (   maxConcurrent == -1 ||
                         maxConcurrent > activeThreads.size())) {
                 // run next job
-                Runnable job = (Runnable) jobQueue.removeFirst();
+                Runnable job = jobQueue.removeFirst();
                 jobWaitingCounter.decr(job);
                 jobRunningCounter.incr(job);
                 RunnableThread jobThread = new RunnableThread(job);
@@ -207,10 +207,10 @@ public class JseRunner extends Thread {
     }
 
     private final class Counter {
-        HashMap objectCounts = new HashMap();
+        HashMap<Object, Integer> objectCounts = new HashMap<Object, Integer>();
 
         public final void incr(Object obj) {
-            Integer count = (Integer) objectCounts.get(obj);
+            Integer count = objectCounts.get(obj);
             if (null == count) {
                 count = new Integer(1);
             } else {
@@ -220,7 +220,7 @@ public class JseRunner extends Thread {
         }
 
         public final void decr(Object obj) {
-            Integer count = (Integer) objectCounts.get(obj);
+            Integer count = objectCounts.get(obj);
             if (null == count) {
                 // this should never happen - jdk1.4 assert
             } else if (count.intValue() == 1) {
@@ -231,7 +231,7 @@ public class JseRunner extends Thread {
         }
 
         public final int value(Object obj) {
-            Integer count = (Integer) objectCounts.get(obj);
+            Integer count = objectCounts.get(obj);
             if (null == count) {
                 return 0;
             } else {

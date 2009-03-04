@@ -24,254 +24,242 @@
 
 package org.anodyneos.jse.cron;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.TimeZone;
+import java.util.UUID;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.XMLConstants;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.UnmarshalException;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.bind.ValidationEvent;
+import javax.xml.bind.ValidationEventLocator;
+import javax.xml.bind.util.ValidationEventCollector;
+import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
 
 import org.anodyneos.jse.JseDateAwareJob;
 import org.anodyneos.jse.JseException;
 import org.anodyneos.jse.JseTimerService;
+import org.anodyneos.jse.cron.config.Config;
+import org.anodyneos.jse.cron.config.Job;
+import org.anodyneos.jse.cron.config.Property;
+import org.anodyneos.jse.cron.config.Schedule;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import org.springframework.beans.MutablePropertyValues;
+import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.xml.sax.InputSource;
 
-
-/**
- *  @version $Id: CronServer.java,v 1.2 2004-05-13 03:42:03 jvas Exp $
- */
 public class CronDaemon {
 
     private static final Log log = LogFactory.getLog(CronDaemon.class);
 
-    private static final String ELEMENT = "element";
-    private static final String ATTRIBUTE = "attribute";
-
-    private static final String E_SCHEDULE = "schedule";
-    private static final String E_SPRING_CONTEXT = "spring-context";
-    private static final String E_CONFIG = "config";
-    private static final String E_JOB_GROUP = "job-group";
-    private static final String E_JOB = "job";
-    private static final String E_PROPERTY = "property";
-
-    private static final String A_TIME_ZONE = "time-zone";
-    private static final String A_CLASS_PATH_RESOURCE = "class-path-resource";
-    private static final String A_MAX_CONCURRENT = "max-concurrent";
-    private static final String A_NAME = "name";
-    private static final String A_CLASS_NAME = "class";
-    private static final String A_SPRING_BEAN = "spring-bean";
-    private static final String A_SCHEDULE = "schedule";
-    private static final String A_MAX_ITERATIONS = "max-iterations";
-    private static final String A_MAX_QUEUE = "max-queue";
-    private static final String A_NOT_BEFORE = "not-before";
-    private static final String A_NOT_AFTER = "not-after";
-    private static final String A_TYPE = "type";
-    private static final String A_SYSTEM_PROPERTY = "system-property";
-    private static final String A_ID = "id";
-    private static final String A_REF_ID = "ref-id";
-
-
-    private ArrayList timerServices = new ArrayList();
+    private ArrayList<JseTimerService> timerServices = new ArrayList<JseTimerService>();
     private SpringHelper springHelper;
 
     public CronDaemon(InputSource source) throws JseException {
-        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 
-        // parse source, create and load timerServices
-        Document doc = null;
+        Schedule schedule;
+
+        // parse source
         try {
-            DocumentBuilder builder =
-                    DocumentBuilderFactory.newInstance().newDocumentBuilder();
-            doc = builder.parse(source);
+
+            JAXBContext jc = JAXBContext.newInstance( "org.anodyneos.jse.cron.config" );
+            Unmarshaller u = jc.createUnmarshaller();
+            //Schedule
+            Source schemaSource = new StreamSource(
+                    Thread.currentThread().getContextClassLoader().getResourceAsStream(
+                            "org/anodyneos/jse/cron/cron.xsd"));
+
+            SchemaFactory sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+            Schema schema = sf.newSchema(schemaSource);
+            u.setSchema(schema);
+            ValidationEventCollector vec = new ValidationEventCollector();
+            u.setEventHandler(vec);
+
+            JAXBElement<?> rootElement;
+            try {
+                rootElement = ((JAXBElement<?>)u.unmarshal(source));
+            } catch (UnmarshalException ex) {
+                if (! vec.hasEvents()) {
+                    throw ex;
+                } else {
+                    for (ValidationEvent ve : vec.getEvents()) {
+                        ValidationEventLocator vel = ve.getLocator();
+                        log.error("Line:Col[" + vel.getLineNumber() +
+                            ":" + vel.getColumnNumber() +
+                            "]:" + ve.getMessage());
+                    }
+                    throw new JseException(
+                            "Validation failed for source publicId='" + source.getPublicId()
+                            + "'; systemId='" + source.getSystemId() + "';");
+                }
+            }
+
+            schedule = (Schedule) rootElement.getValue();
+
+            if (vec.hasEvents()) {
+                for (ValidationEvent ve : vec.getEvents()) {
+                    ValidationEventLocator vel = ve.getLocator();
+                    log.warn("Line:Col[" + vel.getLineNumber() +
+                        ":" + vel.getColumnNumber() +
+                        "]:" + ve.getMessage());
+                }
+            }
+
+        } catch (JseException e) {
+            throw e;
         } catch (Exception e) {
             throw new JseException("Cannot parse " + source + ".", e);
         }
 
-        TimeZone defaultTimeZone = TimeZone.getDefault();
+        SpringHelper springHelper = new SpringHelper();
 
-        // E_SCHEDULE
-        Element sch = (Element) doc.getElementsByTagName(E_SCHEDULE).item(0);
-        if (sch.hasAttribute(A_TIME_ZONE)) {
-            defaultTimeZone = getTimeZone(sch.getAttribute(A_TIME_ZONE));
+        ////////////////
+        //
+        // Configure Spring and Create Beans
+        //
+        ////////////////
+
+        TimeZone defaultTimeZone;
+
+        if(schedule.isSetTimeZone()) {
+            defaultTimeZone = getTimeZone(schedule.getTimeZone());
+        } else {
+            defaultTimeZone = TimeZone.getDefault();
         }
 
-        // E_SPRING_CONTEXT
-        NodeList springNL = doc.getElementsByTagName(E_SPRING_CONTEXT);
-        if (springNL.getLength() > 0) {
-            springHelper = new SpringHelper();
-            Element springContext = (Element) springNL.item(0);
-            NodeList configs = springContext.getElementsByTagName(E_CONFIG);
-            for(int i = 0; i < configs.getLength(); i++) {
-                Element config = (Element) configs.item(i);
-                if(config.hasAttribute(A_CLASS_PATH_RESOURCE)) {
-                    springHelper.addConfigLocation(config.getAttribute(A_CLASS_PATH_RESOURCE));
+        if(schedule.isSetSpringContext() && schedule.getSpringContext().isSetConfig()) {
+            for (Config config : schedule.getSpringContext().getConfig()) {
+                springHelper.addXmlClassPathConfigLocation(config.getClassPathResource());
+            }
+        }
+
+        for(org.anodyneos.jse.cron.config.JobGroup jobGroup : schedule.getJobGroup()) {
+            for (Job job : jobGroup.getJob()) {
+                if(job.isSetBeanRef()) {
+                    if (job.isSetBean() || job.isSetClassName()) {
+                        throw new JseException("Cannot set bean or class attribute for job when beanRef is set.");
+                    } // else config ok
+                } else {
+                    if (!job.isSetClassName()) {
+                        throw new JseException("must set either class or beanRef for job.");
+                    }
+                    GenericBeanDefinition beanDef = new GenericBeanDefinition();
+                    MutablePropertyValues propertyValues = new MutablePropertyValues();
+
+                    if (!job.isSetBean()) {
+                        job.setBean(UUID.randomUUID().toString());
+                    }
+
+                    if (springHelper.containsBean(job.getBean())) {
+                        throw new JseException("Bean name already used; overriding not allowed here: " + job.getBean());
+                    }
+
+                    beanDef.setBeanClassName(job.getClassName());
+
+                    for(Property prop : job.getProperty()) {
+                        String value = null;
+                        if (prop.isSetSystemProperty()) {
+                            value = System.getProperty(prop.getSystemProperty());
+                        }
+                        if (null == value) {
+                            value = prop.getValue();
+                        }
+
+                        propertyValues.addPropertyValue(prop.getName(), value);
+                    }
+
+                    beanDef.setPropertyValues(propertyValues);
+                    springHelper.registerBean(job.getBean(), beanDef);
+                    job.setBeanRef(job.getBean());
                 }
             }
-            springHelper.init();
         }
 
-        // E_JOB_GROUP
-        NodeList jobGroups = doc.getElementsByTagName(E_JOB_GROUP);
-        for(int i = 0; i < jobGroups.getLength(); i++) {
-            Element jobGroup = (Element) jobGroups.item(i);
-            NodeList jobs = jobGroup.getElementsByTagName(E_JOB);
-            if(jobs.getLength() == 0) {
-                continue;
-            }
+        springHelper.init();
+
+        ////////////////
+        //
+        // Configure Timer Services
+        //
+        ////////////////
+
+        for(org.anodyneos.jse.cron.config.JobGroup jobGroup : schedule.getJobGroup()) {
+
+            String jobGroupName;
             JseTimerService service = new JseTimerService();
-            String jobGroupName = null;
+
             timerServices.add(service);
-            // A_MAX_CONCURRENT
-            if(jobGroup.hasAttribute(A_MAX_CONCURRENT)) {
-                service.setMaxConcurrent(Integer.parseInt(jobGroup.getAttribute(A_MAX_CONCURRENT)));
+
+
+            if (jobGroup.isSetName()) {
+                jobGroupName = jobGroup.getName();
+            } else {
+                jobGroupName = UUID.randomUUID().toString();
             }
-            // A_NAME
-            if(jobGroup.hasAttribute(A_NAME)) {
-                jobGroupName = jobGroup.getAttribute(A_NAME);
+
+            if(jobGroup.isSetMaxConcurrent()) {
+                service.setMaxConcurrent(jobGroup.getMaxConcurrent());
             }
-            // E_JOB
-            for(int j = 0; j < jobs.getLength(); j++) {
-                TimeZone timeZone = defaultTimeZone;
-                Element job = (Element) jobs.item(j);
-                // track progress for error reporting
-                String propertyName = null;
-                String jobName = "UNDEFINED";
-                String springBean = null;
-                String step = E_JOB;
-                String type = ELEMENT;
-                try {
-                    Object obj;
-                    boolean isSpringBean = false;
 
-                    // A_NAME
-                    step = A_NAME;
-                    type = ATTRIBUTE;
-                    if(job.hasAttribute(A_NAME)) {
-                        jobName = job.getAttribute(A_NAME);
-                    }
-                    // A_SPRING_BEAN
-                    step = A_SPRING_BEAN;
-                    type = ATTRIBUTE;
-                    if (job.hasAttribute(A_SPRING_BEAN)) {
-                        obj = springHelper.getBean(job.getAttribute(A_SPRING_BEAN));
-                        isSpringBean = true;
-                    } else {
-                        // A_CLASS_NAME
-                        step = A_CLASS_NAME;
-                        type = ATTRIBUTE;
-                        obj = BeanUtil.getInstance(job.getAttribute(A_CLASS_NAME));
-                    }
+            for (Job job : jobGroup.getJob()) {
 
-                    // A_MAX_ITERATIONS
-                    step = A_MAX_ITERATIONS;
-                    type = ATTRIBUTE;
-                    int numIterations = -1;
-                    if(job.hasAttribute(A_MAX_ITERATIONS)) {
-                        numIterations = Integer.parseInt(job.getAttribute(A_MAX_ITERATIONS));
-                    }
-                    // A_MAX_QUEUE
-                    step = A_MAX_QUEUE;
-                    type = ATTRIBUTE;
-                    int maxQueue = -1;
-                    if(job.hasAttribute(A_MAX_QUEUE)) {
-                        maxQueue = Integer.parseInt(job.getAttribute(A_MAX_QUEUE));
-                    }
-                    // A_NOT_BEFORE
-                    step = A_NOT_BEFORE;
-                    type = ATTRIBUTE;
-                    Date notBefore = null;
-                    if(job.hasAttribute(A_NOT_BEFORE)) {
-                        notBefore = dateFormat.parse(job.getAttribute(A_NOT_BEFORE));
-                    }
-                    // A_NOT_AFTER
-                    step = A_NOT_AFTER;
-                    type = ATTRIBUTE;
-                    Date notAfter = null;
-                    if(job.hasAttribute(A_NOT_AFTER)) {
-                        notAfter = dateFormat.parse(job.getAttribute(A_NOT_AFTER));
-                    }
-                    // A_TIME_ZONE
-                    step = A_TIME_ZONE;
-                    type = ATTRIBUTE;
-                    if (job.hasAttribute(A_TIME_ZONE)) {
-                        timeZone = getTimeZone(job.getAttribute(A_TIME_ZONE));
-                    }
-                    // A_SCHEDULE
-                    step = A_SCHEDULE;
-                    type = ATTRIBUTE;
-                    CronSchedule schedule =
-                            new CronSchedule(job.getAttribute(A_SCHEDULE), timeZone, numIterations, maxQueue, notBefore, notAfter);
+                TimeZone jobTimeZone = defaultTimeZone;
 
-                    if (! isSpringBean) {
-                        // E_PROPERTY
-                        step = E_PROPERTY;
-                        type = ELEMENT;
-                        NodeList properties = job.getElementsByTagName(E_PROPERTY);
-                        for(int p = 0; p < properties.getLength(); p++) {
-                            Element property = (Element) properties.item(p);
-                            property.normalize(); // join adjacent text nodes
-                            propertyName = property.getAttribute(A_NAME);
-                            String propType = property.getAttribute(A_TYPE);
-                            String systemProperty = property.getAttribute(A_SYSTEM_PROPERTY);
-                            String refId = property.getAttribute(A_REF_ID);
+                if (job.isSetTimeZone()) {
+                    jobTimeZone = getTimeZone(job.getTimeZone());
+                } else {
+                    jobTimeZone = defaultTimeZone;
+                }
 
-                            propertyName = "".equals(propertyName) ? null : propertyName;
-                            propType = "".equals(propType) ? null : propType;
-                            systemProperty = "".equals(systemProperty) ? null : systemProperty;
-                            refId = "".equals(refId) ? null : refId;
+                Object obj;
 
-                            String value = null;
+                Date notBefore = null;
+                Date notAfter = null;
 
-                            if (null != systemProperty) {
-                                // try to get value from system property;
-                                value = System.getProperty(systemProperty);
-                            }
-                            if (null == value) {
-                                // or get value from content of element
-                                value = getTextContent(property);
-                            }
+                if(job.isSetNotBefore()) {
+                    notBefore = job.getNotBefore().toGregorianCalendar(jobTimeZone, null, null).getTime();
+                }
+                if(job.isSetNotAfter()) {
+                    notAfter = job.getNotAfter().toGregorianCalendar(jobTimeZone, null, null).getTime();
+                }
 
-                            BeanUtil.set(obj, propertyName, value, propType);
-                        }
-                    }
-                    log.info("Adding job " + jobGroupName + "/" + jobName);
-                    if (obj instanceof CronJob) {
-                        ((CronJob) obj).setCronContext(new CronContext(jobGroupName, jobName, schedule));
-                    }
-                    if (obj instanceof JseDateAwareJob) {
-                        service.createTimer((JseDateAwareJob) obj, schedule);
-                    } else if (obj instanceof Runnable) {
-                        service.createTimer((Runnable) obj, schedule);
-                    } else {
-                        throw new JseException("Job must implement Runnable or JseDateAwareJob");
-                    }
-                } catch (Exception exception) {
-                    StringBuilder sb = new StringBuilder();
-                    sb.append("Skipping job " + jobGroupName + "/" + jobName);
-                    if (ELEMENT.equals(type)) {
-                        sb.append(" - exception while processing element '" + step + "'");
-                    } else {
-                        sb.append(" - exception while processing attribute '" + step + "'");
-                    }
-                    log.error(sb.toString(), exception);
+                CronSchedule cs = new CronSchedule(
+                        job.getSchedule(),
+                        jobTimeZone,
+                        job.getMaxIterations(),
+                        job.getMaxQueue(),
+                        notBefore,
+                        notAfter);
+
+
+                obj = springHelper.getBean(job.getBeanRef());
+                log.info("Adding job " + jobGroup.getName() + "/" + job.getName() + " using bean " + job.getBeanRef());
+                if (obj instanceof CronJob) {
+                    ((CronJob) obj).setCronContext(new CronContext(jobGroupName, job.getName(), cs));
+                }
+                if (obj instanceof JseDateAwareJob) {
+                    service.createTimer((JseDateAwareJob) obj, cs);
+                } else if (obj instanceof Runnable) {
+                    service.createTimer((Runnable) obj, cs);
+                } else {
+                    throw new JseException("Job must implement Runnable or JseDateAwareJob");
                 }
             }
         }
     }
 
     public void start() {
-        Iterator it = timerServices.iterator();
+        Iterator<JseTimerService> it = timerServices.iterator();
         while(it.hasNext()) {
-            JseTimerService service = (JseTimerService) it.next();
+            JseTimerService service = it.next();
             log.info("Starting service thread: " + service.getName());
             service.start();
         }
@@ -281,18 +269,6 @@ public class CronDaemon {
         InputSource source = new InputSource(args[0]);
         CronDaemon server = new CronDaemon(source);
         server.start();
-    }
-
-    public static final String getTextContent(Element el) {
-        StringBuffer sb = new StringBuffer();
-        NodeList nodes = el.getChildNodes();
-        for(int i = 0; i < nodes.getLength(); i++) {
-            short type = nodes.item(i).getNodeType();
-            if(type == Node.TEXT_NODE || type == Node.CDATA_SECTION_NODE) {
-                sb.append(nodes.item(i).getNodeValue());
-            }
-        }
-        return sb.toString();
     }
 
     protected TimeZone getTimeZone(String tzs) throws JseException {
@@ -309,4 +285,6 @@ public class CronDaemon {
         }
         return tz;
     }
+
+
 }

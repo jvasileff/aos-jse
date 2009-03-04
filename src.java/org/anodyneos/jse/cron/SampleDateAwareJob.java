@@ -25,10 +25,8 @@
 package org.anodyneos.jse.cron;
 
 import java.util.Date;
-import java.util.Map;
 
 import org.anodyneos.jse.JseDateAwareJob;
-import org.anodyneos.jse.JseException;
 
 /**
  *  @version $Id: SampleDateAwareJob.java,v 1.2 2004-05-13 03:42:03 jvas Exp $
@@ -62,9 +60,6 @@ public class SampleDateAwareJob implements JseDateAwareJob {
         System.out.println("SampleJseCronJob: run w/param: " + runDate + " " + dbPassword);
     }
 
-    public void init(Map initParams) throws JseException {
-        System.out.println("SampleJseCronJob: init called");
-    }
 
 }
 

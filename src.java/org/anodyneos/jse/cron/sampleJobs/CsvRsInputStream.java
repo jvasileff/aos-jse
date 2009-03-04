@@ -53,12 +53,12 @@ public class CsvRsInputStream extends InputStream {
     private boolean rsClosed = false;
     private boolean eof = false;
 
-    public CsvRsInputStream(ResultSet rs, List cols, String encoding) throws SQLException, IOException,
+    public CsvRsInputStream(ResultSet rs, List<String> cols, String encoding) throws SQLException, IOException,
     UnsupportedEncodingException {
         this(rs, cols, true, encoding, NO_COMPRESSION, null);
     }
 
-    public CsvRsInputStream(ResultSet rs, List cols, boolean closeRsWhenDone, String encoding, String compression,
+    public CsvRsInputStream(ResultSet rs, List<String> cols, boolean closeRsWhenDone, String encoding, String compression,
             String zipFileName)
     throws SQLException, IOException, UnsupportedEncodingException {
         this.closeRsWhenDone = closeRsWhenDone;

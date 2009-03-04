@@ -20,7 +20,7 @@ public class CsvRsDataSource implements DataSource {
 
     private ResultSet rs;
     private String name;
-    private List cols;
+    private List<String> cols;
     private boolean closeRs;
     private String mimeType;
     private String charset;
@@ -31,7 +31,7 @@ public class CsvRsDataSource implements DataSource {
     public static final Log log = LogFactory.getLog(CsvRsDataSource.class);
 
     public CsvRsDataSource(ResultSet rs, boolean closeRs, String name, String mimeType, String charset,
-            String compression, List cols) {
+            String compression, List<String> cols) {
         this.rs = rs;
         //this.query = query;
         this.name = name;

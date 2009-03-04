@@ -24,10 +24,6 @@
 
 package org.anodyneos.jse.cron;
 
-import java.util.Map;
-
-import org.anodyneos.jse.JseException;
-
 /**
  *  @version $Id: SampleJob.java,v 1.2 2004-05-13 03:42:03 jvas Exp $
  */
@@ -58,10 +54,6 @@ public class SampleJob implements Runnable {
         } catch (Exception e) {}
         */
         System.out.println("SampleJseCronJob: run w/param: " + dbPassword);
-    }
-
-    public void init(Map initParams) throws JseException {
-        System.out.println("SampleJseCronJob: init called");
     }
 
 }

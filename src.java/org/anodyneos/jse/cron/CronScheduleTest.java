@@ -27,7 +27,6 @@ package org.anodyneos.jse.cron;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
-import java.util.TreeSet;
 
 
 /** @TODO investigate daylight savings time shifts.  Need to set cal more than
@@ -40,8 +39,6 @@ public class CronScheduleTest {
     GregorianCalendar startCal;
     GregorianCalendar endCal;
     CronSchedule schedule;
-
-    TreeSet results = new TreeSet();
 
     public static void main(String[] args) throws CronParseException {
         CronScheduleTest obj = new CronScheduleTest();

@@ -1,36 +1,48 @@
 package org.anodyneos.jse.cron;
 
-import java.util.ArrayList;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.core.io.ClassPathResource;
 
 public class SpringHelper {
 
     private static final Log log = LogFactory.getLog(SpringHelper.class);
 
-    private ClassPathXmlApplicationContext ctx;
-    ArrayList configLocations = new ArrayList();
+    private GenericApplicationContext ctx;
 
     public ApplicationContext getApplicationContext() {
         return ctx;
     }
 
-    public void init() {
+    public SpringHelper() {
         log.info("Creating Spring application context");
-        ctx = new ClassPathXmlApplicationContext(
-                (String[]) configLocations.toArray(new String[configLocations.size()]));
+        ctx = new GenericApplicationContext();
     }
 
-    public void addConfigLocation(String location) {
-        log.info("Adding spring config: " + location);
-        configLocations.add(location);
+    public void init() {
+        ctx.refresh();
+    }
+
+    public void addXmlClassPathConfigLocation(String location) {
+        XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(ctx);
+        reader.loadBeanDefinitions(new ClassPathResource(location));
     }
 
     public Object getBean(String name) {
         return ctx.getBean(name);
+    }
+
+    public void registerBean(String name, BeanDefinition bd) {
+        ctx.registerBeanDefinition(name, bd);
+    }
+
+    public boolean containsBean(String name) {
+        return ctx.containsBean(name);
     }
 
 }

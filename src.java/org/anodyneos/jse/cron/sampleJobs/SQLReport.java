@@ -68,9 +68,9 @@ public class SQLReport implements CronJob {
     /**
      * RFC 822 Email addresses, for example: Alfred Neuman <Neuman@BBN-TENEXA>
      */
-    private List toAddressList = new ArrayList();
-    private List ccAddressList = new ArrayList();
-    private List bccAddressList = new ArrayList();
+    private List<InternetAddress> toAddressList = new ArrayList<InternetAddress>();
+    private List<InternetAddress> ccAddressList = new ArrayList<InternetAddress>();
+    private List<InternetAddress> bccAddressList = new ArrayList<InternetAddress>();
     private InternetAddress fromAddress;
     private String subject;
     private String messageText;
@@ -78,7 +78,7 @@ public class SQLReport implements CronJob {
     /**
      * In cron.xml, this is a comma separated list of column display names.
      */
-    private List columnNames;
+    private List<String> columnNames;
 
     /**
      * Default constructor, required by Jse/Cron.
@@ -188,7 +188,7 @@ public class SQLReport implements CronJob {
             log.debug("setColumnNames(\"" + s + "\")");
         }
         if (null == columnNames) {
-            columnNames = new ArrayList();
+            columnNames = new ArrayList<String>();
         }
         StringTokenizer st = new StringTokenizer(s, ",");
         while (st.hasMoreTokens()) {
@@ -220,7 +220,7 @@ public class SQLReport implements CronJob {
             MimeMessage msg = new MimeMessage(session);
             msg.setFrom(fromAddress);
             msg.setRecipients(Message.RecipientType.TO,
-                    (InternetAddress[])toAddressList.toArray(new InternetAddress[toAddressList.size()]));
+                    toAddressList.toArray(new InternetAddress[toAddressList.size()]));
             msg.setRecipients(Message.RecipientType.CC,
                     (InternetAddress[])ccAddressList.toArray(new InternetAddress[ccAddressList.size()]));
             msg.setRecipients(Message.RecipientType.BCC,
