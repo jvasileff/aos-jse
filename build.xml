@@ -49,7 +49,7 @@
     <property name="smtp.jar" location="${dir.jars.notfree}/javamail-1.3.1/smtp.jar"/>
     <property name="activation.jar" location="${dir.jars.notfree}/jaf-1.0.2/activation.jar"/>
 
-    <property name="activation.jar" location="${dir.jars}/jaxb-ri-2.1.10/activation.jar"/>
+    <!--<property name="activation.jar" location="${dir.jars}/jaxb-ri-2.1.10/activation.jar"/>-->
 
     <property name="jaxb-api.jar" location="${dir.jars}/jaxb-ri-2.1.10/jaxb-api.jar"/>
     <property name="jaxb-impl.jar" location="${dir.jars}/jaxb-ri-2.1.10/jaxb-impl.jar"/>
