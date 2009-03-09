@@ -39,7 +39,7 @@
     <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     ~~  required jars
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
-    <property name="anodyneos-commons.jar" location="${dir.jars}/anodyneos-commons-0.3/anodyneos-commons.jar"/>
+    <property name="anodyneos-commons.jar" location="${dir.jars}/anodyneos-commons-0.4.4/anodyneos-commons.jar"/>
 
     <property name="commons-logging-1.1.1.jar" location="${dir.jars}/commons-logging-1.1.1/commons-logging-1.1.1.jar"/>
     <property name="log4j-1.2.15.jar" location="${dir.jars}/apache-log4j-1.2.15/log4j-1.2.15.jar"/>
