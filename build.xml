@@ -78,8 +78,10 @@
 
         <copy toDir="${dir.build.ide.lib}" file="${jaxb-api.jar}"/>
         <copy toDir="${dir.build.ide.lib}" file="${jaxb-impl.jar}"/>
+        <!--
         <copy toDir="${dir.build.ide.lib}" file="${jaxb-xjc.jar}"/>
         <copy toDir="${dir.build.ide.lib}" file="${jaxb1-impl.jar}"/>
+        -->
         <copy toDir="${dir.build.ide.lib}" file="${jsr173_1.0_api.jar}"/>
 
         <copy toDir="${dir.build.ide.lib}" file="${spring.jar}"/>
