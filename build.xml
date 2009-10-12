@@ -6,12 +6,21 @@
 **
 *****************************************************************************-->
 
-<project name="anodyneos-jse" default="compile" basedir=".">
+<project name="anodyneos-jse" default="compile" basedir="."
+        xmlns:artifact="antlib:org.apache.maven.artifact.ant">
 
+    <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ~~  setup and defaults
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
     <property file="build.properties"/>
 
     <property name="compile.source" value="1.5"/>
     <property name="compile.target" value="1.5"/>
+
+    <!-- defaults, override in build.properties if desired -->
+    <property name="compile.deprecation" value="off"/>
+    <property name="compile.debug" value="true"/>
+    <property name="compile.debuglevel" value="lines,source,vars"/>
 
     <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     ~~  common
@@ -24,74 +33,25 @@
     <property name="dir.src.sample"     location="src.sample"/>
     <property name="cronConfigFile"     location="${dir.src.sample}/cron.xml"/>
 
-    <path id="path.jaxb">
-        <pathelement location="${dir.jars}/jaxb-ri-2.1.10/jaxb-api.jar"/>
-        <pathelement location="${dir.jars}/jaxb-ri-2.1.10/jaxb-impl.jar"/>
-        <pathelement location="${dir.jars}/jaxb-ri-2.1.10/jaxb-xjc.jar"/>
-        <pathelement location="${dir.jars}/jaxb-ri-2.1.10/jaxb1-impl.jar"/>
-        <pathelement location="${dir.jars}/jaxb-ri-2.1.10/jsr173_1.0_api.jar"/>
-    </path>
-
-    <taskdef name="xjc" classname="com.sun.tools.xjc.XJCTask">
-        <classpath refid="path.jaxb" />
-    </taskdef>
-
-    <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    ~~  required jars
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
-    <property name="anodyneos-commons.jar" location="${dir.jars}/anodyneos-commons-0.4.4/anodyneos-commons.jar"/>
-
-    <property name="commons-logging-1.1.1.jar" location="${dir.jars}/commons-logging-1.1.1/commons-logging-1.1.1.jar"/>
-    <property name="log4j-1.2.15.jar" location="${dir.jars}/apache-log4j-1.2.15/log4j-1.2.15.jar"/>
-
-    <property name="mailapi.jar" location="${dir.jars.notfree}/javamail-1.3.1/mailapi.jar"/>
-    <property name="mail.jar" location="${dir.jars.notfree}/javamail-1.3.1/mail.jar"/>
-    <property name="smtp.jar" location="${dir.jars.notfree}/javamail-1.3.1/smtp.jar"/>
-    <property name="activation.jar" location="${dir.jars.notfree}/jaf-1.0.2/activation.jar"/>
-
-    <!--<property name="activation.jar" location="${dir.jars}/jaxb-ri-2.1.10/activation.jar"/>-->
-
-    <property name="jaxb-api.jar" location="${dir.jars}/jaxb-ri-2.1.10/jaxb-api.jar"/>
-    <property name="jaxb-impl.jar" location="${dir.jars}/jaxb-ri-2.1.10/jaxb-impl.jar"/>
-    <property name="jaxb-xjc.jar" location="${dir.jars}/jaxb-ri-2.1.10/jaxb-xjc.jar"/>
-    <property name="jaxb1-impl.jar" location="${dir.jars}/jaxb-ri-2.1.10/jaxb1-impl.jar"/>
-    <property name="jsr173_1.0_api.jar" location="${dir.jars}/jaxb-ri-2.1.10/jsr173_1.0_api.jar"/>
-
-    <property name="spring.jar" location="${dir.jars}/spring-framework-2.5.4/spring.jar"/>
-    <!--<property name="cglib-nodep-2.2.jar" location="${dir.jars}/cglib-2.2/cglib-nodep-2.2.jar"/>-->
-
-
     <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     ~~  prepare.post
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
     <target name="prepare.post">
-        <!-- ide.lib -->
-        <copy toDir="${dir.build.ide.lib}" file="${anodyneos-commons.jar}"/>
 
-        <copy toDir="${dir.build.ide.lib}" file="${commons-logging-1.1.1.jar}"/>
-        <copy toDir="${dir.build.ide.lib}" file="${log4j-1.2.15.jar}"/>
-
-        <copy toDir="${dir.build.ide.lib}" file="${mailapi.jar}"/>
-        <copy toDir="${dir.build.ide.lib}" file="${mail.jar}"/>
-        <copy toDir="${dir.build.ide.lib}" file="${smtp.jar}"/>
-        <copy toDir="${dir.build.ide.lib}" file="${activation.jar}"/>
-
-        <copy toDir="${dir.build.ide.lib}" file="${jaxb-api.jar}"/>
-        <copy toDir="${dir.build.ide.lib}" file="${jaxb-impl.jar}"/>
-        <!--
-        <copy toDir="${dir.build.ide.lib}" file="${jaxb-xjc.jar}"/>
-        <copy toDir="${dir.build.ide.lib}" file="${jaxb1-impl.jar}"/>
-        -->
-        <copy toDir="${dir.build.ide.lib}" file="${jsr173_1.0_api.jar}"/>
-
-        <copy toDir="${dir.build.ide.lib}" file="${spring.jar}"/>
-        <!--<copy toDir="${dir.build.ide.lib}" file="${cglib-nodep-2.2.jar}"/>-->
+        <artifact:pom id="pom.main" file="pom.xml"/>
+        <artifact:dependencies usescope="compile" filesetId="fs.dependencies.compile" pomrefid="pom.main"/>
+        <artifact:dependencies usescope="test" filesetId="fs.dependencies.test" pomrefid="pom.main"/>
+        <artifact:dependencies usescope="runtime" filesetId="fs.dependencies.runtime" pomrefid="pom.main"/>
 
         <!-- paths -->
-        <path id="path.compile">
-            <fileset id="fs.lib" dir="${dir.build.ide.lib}">
-                <include name="*.jar"/>
-            </fileset>
+        <path id="path.dependencies.compile">
+            <!--<fileset dir="${dir.build.ide.lib}" includes="*.jar"/>-->
+            <fileset refid="fs.dependencies.compile"/>
+        </path>
+
+        <path id="path.dependencies.runtime">
+            <!--<fileset dir="${dir.build.ide.lib}" includes="*.jar"/>-->
+            <fileset refid="fs.dependencies.runtime"/>
         </path>
     </target>
 
@@ -104,6 +64,13 @@
     ~~  xjc (JAXB)
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
     <target name="xjc" depends="prepare" description="xjc">
+        <artifact:dependencies pathId="path.jaxb.ant">
+            <dependency groupid="com.sun.xml.bind" artifactid="jaxb-xjc" version="2.1.12"/>
+        </artifact:dependencies>
+        <taskdef name="xjc" classname="com.sun.tools.xjc.XJCTask">
+            <classpath refid="path.jaxb.ant" />
+        </taskdef>
+
         <xjc schema="${dir.src.java}/org/anodyneos/jse/cron/cron.xsd" package="org.anodyneos.jse.cron.config" destdir="${dir.build.java}">
             <produces dir="${dir.build.java}/org/anodyneos/jse/cron/config" includes="**/*.java" />
         </xjc>
@@ -117,7 +84,7 @@
         <java taskname="run" fork="yes" classname="org.anodyneos.jse.cron.CronDaemon">
             <arg line="${cronConfigFile}"/>
             <sysproperty key="test.prop.22" value="22"/>
-            <classpath refid="path.compile"/>
+            <classpath refid="path.dependencies.compile"/>
             <classpath location="${dir.build.classes}"/>
         </java>
     </target>
@@ -128,7 +95,7 @@
 
     <target name="jseRunnerTest" depends="compile" description="Run JseRunnerTest">
         <java taskname="run" fork="yes" classname="org.anodyneos.jse.JseRunnerTest">
-            <classpath refid="path.compile"/>
+            <classpath refid="path.dependencies.compile"/>
             <classpath location="${dir.build.classes}"/>
         </java>
     </target>
@@ -139,7 +106,7 @@
 
     <target name="cronScheduleTest" depends="compile" description="Run CronScheduleTest">
         <java taskname="run" fork="yes" classname="org.anodyneos.jse.cron.CronScheduleTest">
-            <classpath refid="path.compile"/>
+            <classpath refid="path.dependencies.compile"/>
             <classpath location="${dir.build.classes}"/>
         </java>
     </target>
