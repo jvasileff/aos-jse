@@ -3,16 +3,6 @@
 	<classpathentry kind="src" path="src.java"/>
 	<classpathentry kind="src" path="build/java"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="build/ide.lib/mail.jar"/>
-	<classpathentry kind="lib" path="build/ide.lib/mailapi.jar"/>
-	<classpathentry kind="lib" path="build/ide.lib/smtp.jar"/>
-	<classpathentry kind="lib" path="build/ide.lib/activation.jar"/>
-	<classpathentry kind="lib" path="build/ide.lib/anodyneos-commons.jar"/>
-	<classpathentry kind="lib" path="build/ide.lib/commons-logging-1.1.1.jar"/>
-	<classpathentry kind="lib" path="build/ide.lib/log4j-1.2.15.jar"/>
-	<classpathentry kind="lib" path="build/ide.lib/spring.jar"/>
-	<classpathentry kind="lib" path="build/ide.lib/jaxb-api.jar"/>
-	<classpathentry kind="lib" path="build/ide.lib/jaxb-impl.jar"/>
-	<classpathentry kind="lib" path="build/ide.lib/jsr173_1.0_api.jar"/>
+	<classpathentry kind="con" path="org.maven.ide.eclipse.MAVEN2_CLASSPATH_CONTAINER"/>
 	<classpathentry kind="output" path="build/ide.classes"/>
 </classpath>
