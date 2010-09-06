@@ -107,6 +107,7 @@ public class CsvRsInputStream extends InputStream {
         csvWriter.flush();
     }
 
+    @Override
     public final int read() throws IOException {
         byte[] bytes = new byte[1];
         int numRead = 0;
@@ -120,6 +121,7 @@ public class CsvRsInputStream extends InputStream {
         }
     }
 
+    @Override
     public final int read(byte[] buf, int off, int len) throws IOException {
         if (eof) {
             return -1;
@@ -189,6 +191,7 @@ public class CsvRsInputStream extends InputStream {
         return numRead;
     }
 
+    @Override
     public void close() throws IOException {
         try {
             close(rs);

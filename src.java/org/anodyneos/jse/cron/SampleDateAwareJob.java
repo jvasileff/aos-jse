@@ -43,6 +43,7 @@ public class SampleDateAwareJob implements JseDateAwareJob {
         this.dbPassword = value;
     }
 
+    @Override
     public void run(Date runDate) {
         System.out.println("SampleJseCronJob: run w/param: " + runDate + " " + dbPassword);
     }

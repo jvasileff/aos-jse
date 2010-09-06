@@ -40,10 +40,12 @@ public class SampleCronJob implements CronJob {
         this.dbPassword = value;
     }
 
+    @Override
     public void run(Date runDate) {
         System.out.println("run w/param: " + runDate + " " + dbPassword);
     }
 
+    @Override
     public void setCronContext(CronContext ctx) {
         // noop
     }

@@ -107,6 +107,7 @@ public class JseRunner extends Thread {
     /**
      *  Called by start().
      */
+    @Override
     public synchronized void run() {
         // process queue.  When empty or maxConcurrent, wait.  Exit when told.
         while(true) {
@@ -195,6 +196,7 @@ public class JseRunner extends Thread {
             this.job = job;
         }
 
+        @Override
         public void run() {
             try {
                 job.run();

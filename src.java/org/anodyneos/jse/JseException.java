@@ -53,10 +53,12 @@ public class JseException extends Exception {
         this.cause = cause;
     }
 
+    @Override
     public Throwable getCause() {
         return cause;
     }
 
+    @Override
     public void printStackTrace(PrintStream s) {
         synchronized (s) {
             super.printStackTrace(s);

@@ -86,6 +86,7 @@ public class SQLReport implements CronJob {
         super();
     }
 
+    @Override
     public void setCronContext(CronContext ctx) {
         // noop
     }
@@ -202,6 +203,7 @@ public class SQLReport implements CronJob {
     /**
      * @see org.anodyneos.jse.JseDateAwareJob#run(java.util.Date)
      */
+    @Override
     public void run(Date runDate) {
         if (log.isDebugEnabled()) {
             log.debug("running query: " + query);

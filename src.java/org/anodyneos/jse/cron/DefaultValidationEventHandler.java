@@ -11,6 +11,7 @@ public class DefaultValidationEventHandler implements ValidationEventHandler {
 
     Log log = LogFactory.getLog(DefaultValidationEventHandler.class);
 
+    @Override
     public boolean handleEvent(ValidationEvent ve) {
         // ignore warnings
         if (ve.getSeverity() != ValidationEvent.WARNING) {

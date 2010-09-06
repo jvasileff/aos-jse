@@ -42,6 +42,7 @@ public class CsvRsDataSource implements DataSource {
         this.compression = compression;
     }
 
+    @Override
     public String getContentType() {
         String contentType;
         if (CsvRsInputStream.GZIP_COMPRESSION.equals(compression)) {
@@ -60,6 +61,7 @@ public class CsvRsDataSource implements DataSource {
         return contentType;
     }
 
+    @Override
     public String getName() {
         if (CsvRsInputStream.GZIP_COMPRESSION.equals(compression)) {
             return name + ".gz";
@@ -70,6 +72,7 @@ public class CsvRsDataSource implements DataSource {
         }
     }
 
+    @Override
     public InputStream getInputStream() throws IOException {
         if (log.isDebugEnabled()) {
             log.debug("getInputStream() called.");
@@ -87,6 +90,7 @@ public class CsvRsDataSource implements DataSource {
         }
     }
 
+    @Override
     public OutputStream getOutputStream() throws IOException {
         throw new UnsupportedOperationException("Readonly DataSource");
     }

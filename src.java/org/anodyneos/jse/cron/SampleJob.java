@@ -39,6 +39,7 @@ public class SampleJob implements Runnable {
         this.dbPassword = value;
     }
 
+    @Override
     public void run() {
         System.out.println("SampleJseCronJob: run w/param: " + dbPassword);
     }

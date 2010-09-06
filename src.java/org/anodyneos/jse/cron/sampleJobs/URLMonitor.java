@@ -60,10 +60,12 @@ public class URLMonitor implements CronJob {
     private String stringNotFoundSubject = "string not found accessing {0}";
     private String stringNotFoundBody = "string not found accessing {0}\nExpected Text: {1}";
 
+    @Override
     public void setCronContext(CronContext ctx) {
         // noop
     }
 
+    @Override
     public void run(Date runDate) {
         log.info("urlmon run: "+runDate);
         String content = null;

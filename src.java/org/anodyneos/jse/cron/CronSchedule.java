@@ -173,6 +173,7 @@ public final class CronSchedule implements JseSchedule {
         dayOfWeekBitmap = processDaysOfWeek(l.get(i++));
     }
 
+    @Override
     public final Date getNextTimeout(Date start) {
         if (null != getNotBefore() && start.before(getNotBefore())) {
             start = getNotBefore();
@@ -191,9 +192,11 @@ public final class CronSchedule implements JseSchedule {
     public final Date getNotAfter() {
         return notAfterDate;
     }
+    @Override
     public final int getNumberOfIterations() {
         return numIterations;
     }
+    @Override
     public final int getMaxQueue() {
         return maxQueue;
     }
@@ -206,6 +209,7 @@ public final class CronSchedule implements JseSchedule {
         return scheduleString;
     }
 
+    @Override
     public final Date[] getDates(Date startDate, Date endDate) {
         ArrayList<Date> al = new ArrayList<Date>();
         while(true) {

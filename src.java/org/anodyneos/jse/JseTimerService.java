@@ -109,6 +109,7 @@ public class JseTimerService extends Thread {
         return runner.getMaxConcurrent();
     }
 
+    @Override
     public synchronized void run() {
         while(true) {
             while(managedJobs.size() == 0) {
@@ -258,6 +259,7 @@ public class JseTimerService extends Thread {
         /**
          *  From Runnable interface. May be called from outside JseTimerService.
          */
+        @Override
         public void run() {
             if (daJob != null) {
                 Date date;
@@ -277,6 +279,7 @@ public class JseTimerService extends Thread {
          *  consistent with equals at the expense of showing as equal two jobs
          *  with the same nextDate.
          */
+        @Override
         public int compareTo(JobWrapper that) {
             int result = this.nextDate.compareTo(that.nextDate);
             if (result == 0) {
@@ -311,15 +314,19 @@ public class JseTimerService extends Thread {
             }
         }
 
+        @Override
         public int getWaitingCount() throws JseTimerExpiredException {
             return getJobWrapper().getWaitingCount();
         }
+        @Override
         public int getRunningCount() throws JseTimerExpiredException {
             return getJobWrapper().getRunningCount();
         }
+        @Override
         public int getCount() throws JseTimerExpiredException {
             return getJobWrapper().getCount();
         }
+        @Override
         public void cancel() throws JseTimerExpiredException {
             getJobWrapper().cancel();
         }
