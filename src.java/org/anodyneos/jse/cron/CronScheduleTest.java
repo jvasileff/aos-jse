@@ -24,6 +24,7 @@
 
 package org.anodyneos.jse.cron;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
@@ -88,6 +89,19 @@ public class CronScheduleTest {
     }
 
     public Date[] run() {
-        return schedule.getDates(startCal.getTime(), endCal.getTime());
+        ArrayList<Date> al = new ArrayList<Date>();
+        Date startDate = startCal.getTime();
+        Date endDate = endCal.getTime();
+        while(true) {
+            startDate = schedule.getNextTimeout(startDate);
+            if (startDate == null || startDate.after(endDate)) {
+                break;
+            } else {
+                al.add(startDate);
+                startDate = new Date(startDate.getTime() + 1);
+            }
+        }
+        return al.toArray(new Date[al.size()]);
     }
+
 }

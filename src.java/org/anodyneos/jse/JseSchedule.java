@@ -35,12 +35,8 @@ import java.util.Date;
  */
 public interface JseSchedule {
 
-    /**
-     *  @deprecated
-     */
-    Date[] getDates(Date start, Date end);
-
     Date getNextTimeout(Date start);
     int getNumberOfIterations();
     int getMaxQueue();
+
 }

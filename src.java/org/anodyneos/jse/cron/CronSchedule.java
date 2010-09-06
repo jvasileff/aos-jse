@@ -209,21 +209,6 @@ public final class CronSchedule implements JseSchedule {
         return scheduleString;
     }
 
-    @Override
-    public final Date[] getDates(Date startDate, Date endDate) {
-        ArrayList<Date> al = new ArrayList<Date>();
-        while(true) {
-            startDate = getNextTimeout(startDate);
-            if (startDate == null || startDate.after(endDate)) {
-                break;
-            } else {
-                al.add(startDate);
-                startDate = new Date(startDate.getTime() + 1);
-            }
-        }
-        return al.toArray(new Date[al.size()]);
-    }
-
     private synchronized int lastDayInMonth(int year, int month) {
         dummyCal.clear();
         dummyCal.set(Calendar.YEAR, year);
