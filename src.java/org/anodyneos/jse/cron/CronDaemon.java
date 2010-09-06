@@ -61,7 +61,6 @@ public class CronDaemon {
     private static final Log log = LogFactory.getLog(CronDaemon.class);
 
     private ArrayList<JseTimerService> timerServices = new ArrayList<JseTimerService>();
-    private SpringHelper springHelper;
 
     public CronDaemon(InputSource source) throws JseException {
 

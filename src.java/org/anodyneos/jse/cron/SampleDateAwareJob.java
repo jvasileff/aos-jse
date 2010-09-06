@@ -33,30 +33,17 @@ import org.anodyneos.jse.JseDateAwareJob;
  */
 public class SampleDateAwareJob implements JseDateAwareJob {
 
-    private int i = 1000;
-    //private String dbPassword = "nonSet";
     private int dbPassword;
 
     public SampleDateAwareJob() {
         // super();
     }
 
-    /*
-    public void setDbPassword(String value) {
-        this.dbPassword = value;
-    }
-    */
     public void setDbPassword(int value) {
         this.dbPassword = value;
     }
 
     public void run(Date runDate) {
-        /*
-        try {
-            i = (int) (Math.random() * 100);
-            Thread.sleep(i);
-        } catch (Exception e) {}
-        */
         System.out.println("SampleJseCronJob: run w/param: " + runDate + " " + dbPassword);
     }
 

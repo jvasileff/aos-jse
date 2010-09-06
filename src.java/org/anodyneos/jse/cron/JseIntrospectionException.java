@@ -33,9 +33,6 @@ import org.anodyneos.jse.JseException;
 public class JseIntrospectionException extends JseException {
 
     private static final long serialVersionUID = 3258128076763051574L;
-    private String value;
-    private String toType;
-    private Throwable cause;
 
     public JseIntrospectionException() {
         super();

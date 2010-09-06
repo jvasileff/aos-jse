@@ -38,8 +38,6 @@ public class URLMonitor implements CronJob {
 
     private static final Log log = LogFactory.getLog(URLMonitor.class);
 
-    private CronContext ctx;
-
     private URL targetURL;
     private String matchText;
     private String smtpServer;
@@ -63,7 +61,7 @@ public class URLMonitor implements CronJob {
     private String stringNotFoundBody = "string not found accessing {0}\nExpected Text: {1}";
 
     public void setCronContext(CronContext ctx) {
-        this.ctx = ctx;
+        // noop
     }
 
     public void run(Date runDate) {
@@ -87,6 +85,7 @@ public class URLMonitor implements CronJob {
             String subject = MessageFormat.format(timeoutSubject, params);
             String body = MessageFormat.format(timeoutBody, params);
             sendError(subject, body);
+            return;
         } catch (IOException e) {
             Object[] params =  new Object[] {targetURL, e.toString(), getStackTrace(e)};
             String subject = MessageFormat.format(ioExceptionSubject, params);

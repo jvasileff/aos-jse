@@ -19,6 +19,7 @@ import javax.activation.DataHandler;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
+import javax.mail.Part;
 import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.AddressException;
@@ -38,8 +39,6 @@ import org.apache.commons.logging.LogFactory;
 public class SQLReport implements CronJob {
 
     private static final Log log = LogFactory.getLog(SQLReport.class);
-
-    private CronContext ctx;
 
     // JDBC
     private String jdbcUser;
@@ -88,7 +87,7 @@ public class SQLReport implements CronJob {
     }
 
     public void setCronContext(CronContext ctx) {
-        this.ctx = ctx;
+        // noop
     }
 
     public void setMailHost(String mailHost) {
@@ -222,9 +221,9 @@ public class SQLReport implements CronJob {
             msg.setRecipients(Message.RecipientType.TO,
                     toAddressList.toArray(new InternetAddress[toAddressList.size()]));
             msg.setRecipients(Message.RecipientType.CC,
-                    (InternetAddress[])ccAddressList.toArray(new InternetAddress[ccAddressList.size()]));
+                    ccAddressList.toArray(new InternetAddress[ccAddressList.size()]));
             msg.setRecipients(Message.RecipientType.BCC,
-                    (InternetAddress[])bccAddressList.toArray(new InternetAddress[bccAddressList.size()]));
+                    bccAddressList.toArray(new InternetAddress[bccAddressList.size()]));
             msg.setSubject(subject);
 
             Multipart multiPart = new MimeMultipart();
@@ -244,7 +243,7 @@ public class SQLReport implements CronJob {
                         charset, compression, columnNames);
                 bodyPart = new MimeBodyPart();
                 bodyPart.setFileName(ds.getName());
-                bodyPart.setDisposition(MimeBodyPart.ATTACHMENT);
+                bodyPart.setDisposition(Part.ATTACHMENT);
                 DataHandler dh = new DataHandler(ds);
                 bodyPart.setDataHandler(dh);
                 multiPart.addBodyPart(bodyPart);

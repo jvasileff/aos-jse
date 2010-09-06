@@ -35,7 +35,6 @@ public class StringCoerceException extends JseException {
     private static final long serialVersionUID = 3545233622354180147L;
     private String value;
     private String toType;
-    private Throwable cause;
 
     public StringCoerceException(String value, String toType, Throwable cause) {
         super("Cannot coerce value '" + value + "' to " + toType, cause);

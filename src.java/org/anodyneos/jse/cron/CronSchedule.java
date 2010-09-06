@@ -461,23 +461,6 @@ public final class CronSchedule implements JseSchedule {
         return list;
     }
 
-    private static final ArrayList<String> split(String s, String sep) {
-        ArrayList<String> list = new ArrayList<String>();
-        int sepLength = sep.length();
-        int startIndex = 0;
-        int sepIndex;
-
-        while ((sepIndex = s.indexOf(sep, startIndex)) != -1) {
-            String range = s.substring(startIndex,sepIndex);
-            list.add(range);
-            startIndex = sepIndex + sepLength;
-        }
-
-        String range = s.substring(startIndex);
-        list.add(range);
-        return list;
-    }
-
     private static final ArrayList<String> split(String s) {
         char c = ' ';
         ArrayList<String> list = new ArrayList<String>();

@@ -40,8 +40,6 @@ public class JseRunnerTest {
     public static void main(String[] args) throws JseException {
         JseRunner r;
         Runnable job = new SimpleJob();
-        Runnable job2 = new SimpleJob();
-        int i = 0;
 
         r = new JseRunner();
         r.setMaxConcurrent(2);

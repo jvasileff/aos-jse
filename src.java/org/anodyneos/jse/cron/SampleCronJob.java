@@ -31,7 +31,6 @@ import java.util.Date;
  */
 public class SampleCronJob implements CronJob {
 
-    private CronContext ctx;
     private int dbPassword;
 
     public SampleCronJob() {
@@ -46,7 +45,7 @@ public class SampleCronJob implements CronJob {
     }
 
     public void setCronContext(CronContext ctx) {
-        this.ctx = ctx;
+        // noop
     }
 
 }

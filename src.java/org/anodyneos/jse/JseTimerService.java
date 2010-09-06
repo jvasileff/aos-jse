@@ -39,7 +39,6 @@ import java.util.TreeSet;
  */
 public class JseTimerService extends Thread {
     private JseRunner runner;
-    private long lastMillis;
 
     /** to help JobWrapper compareTo when nextDates are equal */
     private long idCounter = Long.MIN_VALUE;
@@ -53,7 +52,6 @@ public class JseTimerService extends Thread {
      *  Create a new JseTimerService.
      */
     public JseTimerService() {
-        this.lastMillis = System.currentTimeMillis() - 1;
         runner = new JseRunner();
         runner.start();
     }
@@ -122,15 +120,11 @@ public class JseTimerService extends Thread {
             JobWrapper jw = managedJobs.first();
             long nextTime = jw.nextDate.getTime();
             long millis = System.currentTimeMillis();
-            if(null != jw && millis >= nextTime) {
+            if(millis >= nextTime) {
                 jw.queue();
             } else {
                 try {
-                    if(null != jw) {
-                        wait(nextTime - millis);
-                    } else {
-                        wait();
-                    }
+                    wait(nextTime - millis);
                 } catch (InterruptedException e) {
                 }
             }

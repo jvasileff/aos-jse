@@ -29,30 +29,17 @@ package org.anodyneos.jse.cron;
  */
 public class SampleJob implements Runnable {
 
-    private int i = 1000;
-    //private String dbPassword = "nonSet";
     private int dbPassword;
 
     public SampleJob() {
         // super();
     }
 
-    /*
-    public void setDbPassword(String value) {
-        this.dbPassword = value;
-    }
-    */
     public void setDbPassword(int value) {
         this.dbPassword = value;
     }
 
     public void run() {
-        /*
-        try {
-            i = (int) (Math.random() * 100);
-            Thread.sleep(i);
-        } catch (Exception e) {}
-        */
         System.out.println("SampleJseCronJob: run w/param: " + dbPassword);
     }
 
