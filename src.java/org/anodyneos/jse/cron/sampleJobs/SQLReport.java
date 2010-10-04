@@ -320,7 +320,7 @@ public class SQLReport implements CronJob {
 
     private List<InternetAddress> toInternetAddressList(String rfc822Addresses) throws AddressException {
         List<InternetAddress> addressList = new ArrayList<InternetAddress>();
-        StringTokenizer st = new StringTokenizer(rfc822Addresses, " ,;");
+        StringTokenizer st = new StringTokenizer(rfc822Addresses, ",; \t\n\r\f");
         while (st.hasMoreTokens()) {
             String tok = st.nextToken().trim();
             if (log.isDebugEnabled()) {
