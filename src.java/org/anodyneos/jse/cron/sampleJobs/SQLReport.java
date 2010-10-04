@@ -179,8 +179,25 @@ public class SQLReport implements CronJob {
         query = buf.toString();
     }
 
-    public void setToAddress(String rfc822Address) throws AddressException {
-        toAddressList.add(new InternetAddress(rfc822Address));
+    public void setToAddresses(String rfc822Addresses) throws AddressException {
+        if (log.isDebugEnabled()) {
+            log.debug("setToAddresses(\"" + rfc822Addresses + "\")");
+        }
+        this.toAddressList = toInternetAddressList(rfc822Addresses);
+    }
+
+    public void setCCAddresses(String rfc822Addresses) throws AddressException {
+        if (log.isDebugEnabled()) {
+            log.debug("setToAddresses(\"" + rfc822Addresses + "\")");
+        }
+        this.ccAddressList = toInternetAddressList(rfc822Addresses);
+    }
+
+    public void setBCCAddresses(String rfc822Addresses) throws AddressException {
+        if (log.isDebugEnabled()) {
+            log.debug("setToAddresses(\"" + rfc822Addresses + "\")");
+        }
+        this.bccAddressList = toInternetAddressList(rfc822Addresses);
     }
 
     public void setColumnNames(String s) {
@@ -300,4 +317,18 @@ public class SQLReport implements CronJob {
     public static final void close(Connection obj) {
         if (null != obj) { try { obj.close(); } catch ( SQLException e ) {} }
     }
+
+    private List<InternetAddress> toInternetAddressList(String rfc822Addresses) throws AddressException {
+        List<InternetAddress> addressList = new ArrayList<InternetAddress>();
+        StringTokenizer st = new StringTokenizer(rfc822Addresses, " ,;");
+        while (st.hasMoreTokens()) {
+            String tok = st.nextToken().trim();
+            if (log.isDebugEnabled()) {
+                log.debug("Adding address '" + tok + "'");
+            }
+            addressList.add(new InternetAddress(tok));
+        }
+        return addressList;
+    }
+
 }
