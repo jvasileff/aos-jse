@@ -265,9 +265,14 @@ public class CronDaemon {
     }
 
     public static void main(String[] args) throws Exception {
-        InputSource source = new InputSource(args[0]);
-        CronDaemon server = new CronDaemon(source);
-        server.start();
+        try {
+            InputSource source = new InputSource(args[0]);
+            CronDaemon server = new CronDaemon(source);
+            server.start();
+        } catch (Exception e) {
+            log.fatal(e.getMessage(), e);
+            throw e;
+        }
     }
 
     protected TimeZone getTimeZone(String tzs) throws JseException {
